@@ -1,0 +1,524 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Thu May 19 15:30:35 2016
+
+@author: rmondoncancel
+"""
+# imports
+import copy
+
+# Skills
+s = {}
+# Pugilist
+s['pugilist'] = {}
+s['pugilist']['bootshine'] = {
+    'name': 'bootshine',
+    'level': 1,
+    'tpCost': 60,
+    'gcdType': 'global',
+    'cooldown': 0,
+    'castTime': 0,
+    'range': 3,
+    'radius': 0,
+    'potency': 150,
+    'type': 'blunt',
+    'skillBuff': ['bootshineCrit'],
+    'removeBuff': ['opoOpoForm'],
+    'addBuff': ['raptorForm'],
+}
+s['pugilist']['trueStrike'] = {
+    'name': 'trueStrike',
+    'level': 2,
+    'tpCost': 50,
+    'gcdType': 'global',
+    'cooldown': 0,
+    'castTime': 0,
+    'range': 3,
+    'radius': 0,
+    'potency': 190,
+    'type': 'blunt',
+    'requiredBuff': ['raptorForm', 'perfectBalance'],
+    'removeBuff': ['raptorForm'],
+    'addBuff': ['coerlForm'],
+}
+s['pugilist']['snapPunch'] = {
+    'name': 'snapPunch',
+    'level': 6,
+    'tpCost': 50,
+    'gcdType': 'global',
+    'cooldown': 0,
+    'castTime': 0,
+    'range': 3,
+    'radius': 0,
+    'potency': 180,
+    'type': 'blunt',
+    'requiredBuff': ['coerlForm', 'perfectBalance'],
+    'removeBuff': ['coerlForm'],
+    'addBuff': ['opoOpoForm', 'greasedLightning'],
+}
+s['pugilist']['internalRelease'] = {
+    'name': 'internalRelease',
+    'level': 12,
+    'tpCost': 0,
+    'gcdType': 'instant',
+    'cooldown': 60,
+    'castTime': 0,
+    'addBuff': ['internalRelease'],
+}
+s['pugilist']['touchOfDeath'] = {
+    'name': 'touchOfDeath',
+    'level': 15,
+    'tpCost': 80,
+    'gcdType': 'global',
+    'cooldown': 0,
+    'castTime': 0,
+    'range': 3,
+    'radius': 0,
+    'potency': 20,
+    'type': 'blunt',
+    'addDebuff': ['touchOfDeath'],
+}
+s['pugilist']['twinSnakes'] = {
+    'name': 'twinSnakes',
+    'level': 18,
+    'tpCost': 60,
+    'gcdType': 'global',
+    'cooldown': 0,
+    'castTime': 0,
+    'range': 3,
+    'radius': 0,
+    'potency': 140,
+    'type': 'blunt',
+    'requiredBuff': ['raptorForm', 'perfectBalance'],
+    'removeBuff': ['raptorForm'],
+    'addBuff': ['coerlForm', 'twinSnakes'],
+}
+s['pugilist']['demolish'] = {
+    'name': 'demolish',
+    'level': 30,
+    'tpCost': 130,
+    'gcdType': 'global',
+    'cooldown': 0,
+    'castTime': 0,
+    'range': 3,
+    'radius': 0,
+    'potency': 70,
+    'type': 'blunt',
+    'requiredBuff': ['coerlForm', 'perfectBalance'],
+    'removeBuff': ['coerlForm'],
+    'addBuff': ['opoOpoForm', 'greasedLightning'],
+    'addDebuff': ['demolish'],
+}
+s['pugilist']['steelPeak'] = {
+    'name': 'steelPeak',
+    'level': 38,
+    'tpCost': 0,
+    'gcdType': 'instant',
+    'cooldown': 40,
+    'castTime': 0,
+    'range': 3,
+    'radius': 0,
+    'potency': 150,
+    'type': 'blunt',
+}
+s['pugilist']['howlingFist'] = {
+    'name': 'howlingFist',
+    'level': 46,
+    'tpCost': 0,
+    'gcdType': 'instant',
+    'cooldown': 60,
+    'castTime': 0,
+    'range': 10,
+    'radius': 10,
+    'potency': 210,
+    'type': 'blunt',
+}
+s['pugilist']['perfectBalance'] = {
+    'name': 'perfectBalance',
+    'level': 46,
+    'tpCost': 0,
+    'gcdType': 'instant',
+    'cooldown': 60,
+    'castTime': 0,
+    'addBuff': ['perfectBalance'],
+}
+
+# Monk
+s['monk'] = {}
+s['monk']['shoulderTackle'] = {
+    'name': 'shoulderTackle',
+    'level': 35,
+    'tpCost': 0,
+    'gcdType': 'instant',
+    'cooldown': 30,
+    'castTime': 0,
+    'range': 20,
+    'radius': 0,
+    'potency': 100,
+    'type': 'blunt',
+}
+s['monk']['fistOfFire'] = {
+    'name': 'fistOfFire',
+    'level': 40,
+    'gcdType': 'instant',
+    'cooldown': 3,
+    'castTime': 0,
+    'addBuff': ['fistOfFire'],
+}
+s['monk']['dragonKick'] = {
+    'name': 'dragonKick',
+    'level': 50,
+    'tpCost': 60,
+    'gcdType': 'global',
+    'cooldown': 0,
+    'castTime': 0,
+    'range': 3,
+    'radius': 0,
+    'potency': 150,
+    'type': 'blunt',
+    'requiredBuff': ['opoOpoForm', 'perfectBalance'],
+    'removeBuff': ['opoOpoForm'],
+    'addBuff': ['raptorForm'],
+    'addDebuff': ['dragonKick'],
+}
+s['monk']['meditation'] = {
+    'name': 'meditation',
+    'level': 54,
+    'tpCost': 0,
+    'gcdType': 'global',
+    'cooldown': 0,
+    'castTime': 0,
+    'addBuff': ['chakra'],
+}
+s['monk']['forbiddenChakra'] = {
+    'name': 'forbiddenChakra',
+    'level': 54,
+    'tpCost': 0,
+    'gcdType': 'instant',
+    'cooldown': 5,
+    'castTime': 0,
+    'range': 3,
+    'radius': 0,
+    'potency': 320,
+    'type': 'blunt',
+    'requiredBuff': ['chakra'],
+    'removeBuff': ['chakra'],
+}
+s['monk']['elixirField'] = {
+    'name': 'elixirField',
+    'level': 56,
+    'tpCost': 0,
+    'gcdType': 'instant',
+    'cooldown': 30,
+    'castTime': 0,
+    'range': 0,
+    'radius': 5,
+    'potency': 220,
+    'type': 'blunt',
+}
+s['monk']['tornadoKick'] = {
+    'name': 'tornadoKick',
+    'level': 60,
+    'tpCost': 0,
+    'gcdType': 'instant',
+    'cooldown': 40,
+    'castTime': 0,
+    'range': 3,
+    'radius': 0,
+    'potency': 330,
+    'type': 'blunt',
+    'requiredBuff': ['greasedLightning'],
+    'removeBuff': ['greasedLightning'],
+}
+
+# Lancer
+s['lancer'] = {}
+s['lancer']['bloodForBlood'] = {
+    'name': 'bloodForBlood',
+    'level': 34,
+    'tpCost': 0,
+    'gcdType': 'instant',
+    'cooldown': 80,
+    'castTime': 0,
+    'addBuff': ['bloodForBlood'],
+}
+
+# Marauder
+s['marauder'] = {}
+s['marauder']['fracture'] = {
+    'name': 'fracture',
+    'level': 6,
+    'tpCost': 80,
+    'gcdType': 'global',
+    'cooldown': 0,
+    'castTime': 0,
+    'range': 3,
+    'radius': 0,
+    'potency': 100,
+    'type': 'slashing',
+    'addDebuff': ['fracture'],
+}
+s['marauder']['mercyStroke'] = {
+    'name': 'mercyStroke',
+    'level': 26,
+    'tpCost': 0,
+    'gcdType': 'instant',
+    'cooldown': 90,
+    'castTime': 0,
+    'range': 3,
+    'radius': 0,
+    'potency': 200,
+    'type': 'slashing',
+    'requiredDebuff': ['lowLife'],
+}
+
+# Buffs
+b = {}
+b['opoOpoForm'] = {
+    'name': 'opoOpoForm',
+    'duration': 10,
+    'buff': {},
+}
+b['raptorForm'] = {
+    'name': 'raptorForm',
+    'duration': 10,
+    'buff': {},
+}
+b['coerlForm'] = {
+    'name': 'coerlForm',
+    'duration': 10,
+    'buff': {},
+}
+b['bootshineCrit'] = {
+    'name': 'bootshineCrit',
+    'duration': 0,
+    'buff': {
+        'critChance': 1,
+    },
+}
+b['greasedLightning'] = {
+    'name': 'greasedLightning',
+    'duration': 14,
+    'maxStacks': 3,
+    'buff': {
+        'damage': 0.1,
+        'speed': -0.05,
+    },
+}
+b['internalRelease'] = {
+    'name': 'internalRelease',
+    'duration': 15,
+    'buff': {
+        'critChance': 0.3,    
+    },
+}
+b['twinSnakes'] = {
+    'name': 'twinSnakes',
+    'duration': 15,
+    'buff': {
+        'damage': 0.1,
+    },
+}
+b['perfectBalance'] = {
+    'name': 'perfectBalance',
+    'duration': 10,
+    'buff': {},
+}
+b['fistOfFire'] = {
+    'name': 'fistOfFire',
+    'buff': {
+        'damage': 0.05,
+    },
+}
+b['chakra'] = {
+    'name': 'chakra',
+    'maxStack': 5,
+    'buff': {},
+}
+b['bloodForBlood'] = {
+    'name': 'bloodForBlood',
+    'duration': 20,
+    'buff': {
+        'damage': 0.1,    
+    },
+}
+
+# Debuffs
+d = {}
+d['touchOfDeath'] = {
+    'name': 'touchOfDeath',
+    'duration': 30,
+    'type': 'DoT',
+    'props': {
+        'potency': 25
+    },
+}
+d['demolish'] = {
+    'name': 'demolish',
+    'duration': 21,
+    'type': 'DoT',
+    'props': {
+        'potency': 50
+    },
+}
+d['dragonKick'] = {
+    'name': 'dragonKick',
+    'duration': 15,
+    'type': 'debuff',
+    'props': {
+        'blunt': -0.1,
+    },
+}
+d['fracture'] = {
+    'name': 'fracture',
+    'duration': 18,
+    'type': 'DoT',
+    'props': {
+        'potency': 20,
+    },
+}
+d['lowLife'] = {
+    'name': 'lowLife',
+    'type': 'debuff',
+}
+
+# Initialize State
+state = {}
+state['player'] = {
+    'buff': [],
+    'baseStats': {},
+    'cooldown': [],
+}
+state['enemy'] = {
+    'debuff': [],
+    'resistance': {
+        'slashing': 1,
+        'piercing': 1,
+        'blunt': 1,
+    }
+}
+state['timeline'] = {
+    'timestamp': 0,
+    'currentAction': {'type': 'gcdSkill'},
+    'nextActions': [],
+}
+
+# Player stats
+state['player']['baseStats'] = {
+    'strength': 484,
+    'criticalHitRate': 393,
+    'determination': 282,
+    'attackPower': 484,
+    'skillSpeed': 413,
+    'weaponDamage': 46,
+}
+# Damage formula
+# ((Potency/100)*(1+WD*0.0432544)*(STR*0.1027246)*(1+DET/7290)*BUFFS)-2
+
+def baseDamage(pot, wd, st, det, buf) :
+    potW = 1./100.
+    wdW = 0.0432544
+    stW = 0.1027246
+    detW = 1./7290.
+    bufF = reduce(lambda x, y: x + y, buf, 1)
+    return (pot * potW) * (st * stW) * (1. + wd * wdW) * (1. + det * detW) * bufF - 2.
+    
+def critChance(crt, buf) :
+    bufF = reduce(lambda x, y: x + y, buf, 0)
+    return min(1, ((crt - 354.) / (858. * 5.)) + 0.05 + bufF)
+
+def critBonus(crt) :
+    return ((crt - 354.) / (858. * 5.)) + 0.45
+
+def gcdTick(ss, buf) :
+    bufF = reduce(lambda x, y: x + y, buf, 1)
+    return (2.50245 - ((ss - 354.) * 0.0003776)) * bufF
+
+def dotTick(ss) :
+    return ((ss - 354.) / 7722. + 1)
+    
+def getBuff(state, buffType) :
+    return [ b[0]['buff'][buffType] * b[1] for b in state['player']['buff'] if buffType in b[0]['buff'] ]
+
+def sign(a) :
+    return (a>0) - (a<0)
+
+def addAction(state, timeDifference, newAction) :
+    newState = copy.deepcopy(state)
+    newState['timeline']['nextActions'] = sorted(
+        newState['timeline']['nextActions'] + [(newState['timeline']['timestamp'] + timeDifference, newAction)],
+        lambda x, y: sign(x[0] - y[0])
+    )
+    return newState
+
+def applyBuff(state, buf) :
+    newState = copy.deepcopy(state)
+    bufList = newState['player']['buff']
+    bufNames = [ b[0]['name'] for b in bufList ]
+    if buf['name'] in bufNames :
+        if 'maxStacks' in buf :
+            newState['player']['buff'] = [ b if b[0]['name'] != buf['name'] else (b[0], min(b[1] + 1, b[0]['maxStacks'])) for b in bufList ]
+            newState['timeline']['nextActions'] = [ na for na in newState['timeline']['nextActions'] if na[1] != { 'type': 'removeBuff', 'name': buf['name'] } ]
+            newState = addAction(newState, buf['duration'], { 'type': 'removeBuff', 'name': buf['name'] })
+        else :
+            newState['timeline']['nextActions'] = [ na for na in newState['timeline']['nextActions'] if na[1] != { 'type': 'removeBuff', 'name': buf['name'] } ]
+            newState = addAction(newState, buf['duration'], { 'type': 'removeBuff', 'name': buf['name'] })
+    else :
+        newState['player']['buff'] = newState['player']['buff'] + [ (buf, 1) ]
+        newState = addAction(newState, buf['duration'], { 'type': 'removeBuff', 'name': buf['name'] })
+    return newState
+    
+def removeBuff(state, removeBuff) :
+    newState = copy.deepcopy(state)
+    newState['player']['buff'] = [ b for b in newState['player']['buff'] if b[0]['name'] not in removeBuff ]
+    newState['timeline']['nextActions'] = [ na for na in newState['timeline']['nextActions'] if na[1] not in [ { 'type': 'removeBuff', 'name': bn } for bn in removeBuff ] ]
+    return newState
+    
+def getDebuff(state, debuffType) :
+    return [ b['props'][debuffType] for b in state['enemy']['debuff'] ]
+
+def getResistance(state, resType) :
+    debufF = reduce(lambda x, y: x + y, getDebuff(state, resType), 0)
+    return state['enemy']['resistance'][resType] + debufF
+
+def applySkill(state, skill) :
+    pot = skill['potency']
+    wd = state['player']['baseStats']['weaponDamage']
+    st = state['player']['baseStats']['strength']
+    det = state['player']['baseStats']['determination']
+    crt = state['player']['baseStats']['criticalHitRate']
+    dmgBuf = getBuff(state, 'damage')
+    crtBuf = getBuff(state, 'critChance')
+    baseDmg = baseDamage(pot, wd, st, det, dmgBuf) 
+    crtChc = critChance(crt, crtBuf)
+    crtBonF = critBonus(crt)
+    crtDmg = baseDmg * (1 + crtChc * crtBonF)
+    dmgRes = getResistance(state, skill['type'])
+    effDmg = crtDmg / dmgRes
+    result = {
+        'damage': effDmg,
+        'tpSpent': skill['tpCost'],
+    }
+    newState = removeBuff(state, skill['removeBuff'])
+    for bufName in skill['addBuff'] :
+        newState = applyBuff(newState, b[bufName])
+    if skill['cooldown'] > 0 :
+        newState = addAction(newState, skill['cooldown'], { 'type': 'removeCooldown', 'name': skill['name'] })
+        newState['player']['cooldown'] = newState['player']['cooldown'] + [ skill['name'] ]
+    ss = newState['player']['baseStats']['skillSpeed']
+    ssBuf = getBuff(newState, 'speed')
+    gcdDuration = gcdTick(ss, ssBuf)
+    if skill['gcdType'] == 'global' :
+        newState = addAction(newState, gcdDuration / 2, { 'type': 'instantSkill' })
+        newState = addAction(newState, gcdDuration, { 'type': 'gcdSkill' })
+    newState['timeline'] = {
+        'currentAction': newState['timeline']['nextActions'][0][1],
+        'timestamp': newState['timeline']['nextActions'][0][0],
+        'nextActions': newState['timeline']['nextActions'][1::],
+    }
+    return (newState, result)
+
+def 
+
+def solveCurrentAction(state) :
+    
