@@ -499,7 +499,7 @@ def removeCooldown(state, remCooldown) :
     return newState
     
 def getDebuff(state, debuffType) :
-    return [ b['props'][debuffType] for b in state['enemy']['debuff'] ]
+    return [ b['props'][debuffType] for b in state['enemy']['debuff'] if debuffType in b['props'] ]
 
 def getResistance(state, resType) :
     debufF = reduce(lambda x, y: x + y, getDebuff(state, resType), 0)
@@ -772,6 +772,8 @@ plist = formatPriorityList(priorityList)
 states = [state]
 results = []
 nextState = copy.deepcopy(state)
-(nextState, nextResult) = solveCurrentAction(nextState, plist)
-states = states + [nextState]
-results = results + [nextResult]
+maxTime = 8 * 60
+while nextState['timeline']['timestamp'] <= maxTime:
+    (nextState, nextResult) = solveCurrentAction(nextState, plist)
+    states = states + [nextState]
+    results = results + [nextResult]
