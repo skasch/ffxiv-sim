@@ -678,16 +678,16 @@ def actionToGcdType(actionType) :
 
 def getConditionValue(state, condition) :
     if condition['type'] == 'buffPresent':
-        return condition['name'] in [ bf[0] for bf in state['player']['buff'] ]
+        return condition['name'] in [ bf[0]['name'] for bf in state['player']['buff'] ]
     elif condition['type'] == 'buffAtMaxStacks':
-        return condition['name'] in [ bf[0] for bf in state['player']['buff'] if bf[1] == b[bf[0]]['maxStacks'] ]
+        return condition['name'] in [ bf[0]['name'] for bf in state['player']['buff'] if bf[1] == b[bf[0]]['maxStacks'] ]
     elif condition['type'] == 'buffTimeLeft':
         timers = [ na[0] - state['timeline']['timestamp'] for na in state['timeline']['nextActions'] if na[1] == { 'type': 'removeBuff', 'name': condition['name'] } ]
         if len(timers) == 0:
             return 0
         return min(timers)
     elif condition['type'] == 'debuffPresent':
-        return condition['name'] in state['enemy']['debuff']
+        return condition['name'] in [ d['name'] for d in state['enemy']['debuff'] ]
     elif condition['type'] == 'debuffTimeLeft':
         timers = [ na[0] - state['timeline']['timestamp'] for na in state['timeline']['nextActions'] if na[1] == { 'type': 'removeDebuff', 'name': condition['name'] } ]
         if len(timers) == 0:
@@ -709,7 +709,7 @@ def testCondition(state, condition) :
 
 def reduceConditions(state, conditions) :
     if 'logic' in conditions:
-        return reduce(conditions['logic'], [ reduceConditions(state, cond) for cond in conditions['list'] ], True)
+        return reduce(conditions['logic'], [ reduceConditions(state, cond) for cond in conditions['list'] ])
     return testCondition(state, conditions)
 
 def findBestSkill(state, priorityList) :
@@ -746,21 +746,62 @@ priorityList = [
         'name': 'touchOfDeath',
         'group': 'pugilist',
         'condition': {
+            'logic': lambda x, y: x and y,
+            'list': [
+                {
+                    'type': 'debuffTimeLeft',
+                    'name': 'touchOfDeath',
+                    'comparison': lambda x, y: x <= y,
+                    'value': 1.5,
+                },
+                {
+                    'type': 'debuffPresent',
+                    'name': 'dragonKick',
+                    'comparison': lambda x, y: x == y,
+                    'value': True,
+                },
+            ]
+        }
+    },
+    {
+        'name': 'demolish',
+        'group': 'pugilist',
+        'condition': {
             'type': 'debuffTimeLeft',
-            'name': 'touchOfDeath',
+            'name': 'demolish',
             'comparison': lambda x, y: x <= y,
             'value': 1.5,
         },
     },
     {
-        'name': 'demolish',
+        'name': 'twinSnakes',
+        'group': 'pugilist',
+        'condition': {
+            'type': 'buffTimeLeft',
+            'name': 'twinSnakes',
+            'comparison': lambda x, y: x <= y,
+            'value': 2,
+        },
+    },
+    {
+        'name': 'snapPunch',
         'group': 'pugilist',
     },
     {
-        'name': 'twinSnakes',
+        'name': 'trueStrike',
         'group': 'pugilist',
     },
-        {
+    {
+        'name': 'dragonKick',
+        'group': 'monk',
+        'condition': {
+            'type': 'debuffTimeLeft',
+            'name': 'dragonKick',
+            'comparison': lambda x, y: x <= y,
+            'value': 2,
+        },
+    },
+    {
         'name': 'bootshine',
         'group': 'pugilist',
     },
@@ -773,7 +814,7 @@ results = []
 nextState = copy.deepcopy(state)
 maxTime = 8 * 60
 while nextState['timeline']['timestamp'] <= maxTime:
-    print(len(results))
     (nextState, nextResult) = solveCurrentAction(nextState, plist)
     states = states + [nextState]
     results = results + [nextResult]
+sum( r['damage'] for r in results if 'damage' in r ) / maxTime
