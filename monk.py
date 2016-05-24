@@ -366,7 +366,7 @@ d['dragonKick'] = {
     'duration': 15,
     'type': 'debuff',
     'props': {
-        'blunt': -0.1,
+        'blunt': 0.1,
     },
 }
 d['fracture'] = {
@@ -422,6 +422,10 @@ def baseDamage(pot, wd, st, det, buf) :
     detW = 1./7290.
     bufF = reduce(lambda x, y: x + y, buf, 1)
     return (pot * potW) * (st * stW) * (1. + wd * wdW) * (1. + det * detW) * bufF - 2.
+
+def basePotency(pot, buf) :
+    bufF = reduce(lambda x, y: x + y, buf, 1)
+    return pot * bufF
     
 def critChance(crt, buf) :
     bufF = reduce(lambda x, y: x + y, buf, 0)
@@ -541,13 +545,17 @@ def applySkill(state, skill) :
         dmgBuf = getBuff(newState, 'damage')
         crtBuf = getBuff(newState, 'critChance')
         baseDmg = baseDamage(pot, wd, st, det, dmgBuf) 
+        basePot = basePotency(pot, dmgBuf)
         crtChc = critChance(crt, crtBuf)
         crtBonF = critBonus(crt)
         crtDmg = baseDmg * (1 + crtChc * crtBonF)
+        crtPot = basePot * (1 + crtChc * crtBonF)
         dmgRes = getResistance(newState, skill['type'])
-        effDmg = crtDmg / dmgRes
+        effDmg = crtDmg * dmgRes
+        effPot = crtPot * dmgRes
         result = {
             'damage': effDmg,
+            'potency': effPot, 
             'source': skill['name'],
             'type': 'skill',
             'timestamp': newState['timeline']['timestamp'],
@@ -591,11 +599,14 @@ def applySingleDot(state, dot) :
     crtBuf = getBuff(dot['snapshot'], 'critChance')
     ssBuf = dotTick(ss)
     baseDmg = baseDamage(pot, wd, st, det, dmgBuf + [ ssBuf ]) 
+    basePot = basePotency(pot, dmgBuf + [ ssBuf ])
     crtChc = critChance(crt, crtBuf)
     crtBonF = critBonus(crt)
     crtDmg = baseDmg * (1 + crtChc * crtBonF)
+    crtPot = basePot * (1 + crtChc * crtBonF)
     result = {
         'damage': crtDmg,
+        'potency': crtPot,
         'source': dot['name'],
         'type': 'DoT',
         'timestamp': state['timeline']['timestamp'],
@@ -882,3 +893,4 @@ while nextState['timeline']['timestamp'] <= maxTime:
     states = states + [nextState]
     results = results + [nextResult]
 sum( r['damage'] for r in results if 'damage' in r ) / maxTime
+sum( r['potency'] for r in results if 'potency' in r ) / maxTime
