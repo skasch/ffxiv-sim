@@ -736,21 +736,10 @@ priorityList = [
         'name': 'touchOfDeath',
         'group': 'pugilist',
         'condition': {
-            'logic': lambda x, y: x or y,
-            'list': [
-                {
-                    'type': 'debuffTimeLeft',
-                    'name': 'touchOfDeath',
-                    'comparison': lambda x, y: x <= y,
-                    'value': 2,
-                },
-                {
-                    'type': 'debuffPresent',
-                    'name': 'touchOfDeath',
-                    'comparison': lambda x, y: x == y,
-                    'value': False,
-                },
-            ]
+            'type': 'debuffTimeLeft',
+            'name': 'touchOfDeath',
+            'comparison': lambda x, y: x <= y,
+            'value': 2,
         },
     },
     {
