@@ -400,7 +400,7 @@ state['enemy'] = {
 state['timeline'] = {
     'timestamp': 0,
     'currentAction': {'type': 'gcdSkill'},
-    'nextActions': [],
+    'nextActions': [ (1, {'type': 'dotTick' }) ],
 }
 
 # Player stats
@@ -412,9 +412,9 @@ state['player']['baseStats'] = {
     'skillSpeed': 413,
     'weaponDamage': 46,
 }
+
 # Damage formula
 # ((Potency/100)*(1+WD*0.0432544)*(STR*0.1027246)*(1+DET/7290)*BUFFS)-2
-
 def baseDamage(pot, wd, st, det, buf) :
     potW = 1./100.
     wdW = 0.0432544
@@ -467,11 +467,35 @@ def applyBuff(state, buf) :
         newState['player']['buff'] = newState['player']['buff'] + [ (buf, 1) ]
         newState = addAction(newState, buf['duration'], { 'type': 'removeBuff', 'name': buf['name'] })
     return newState
-    
-def removeBuff(state, removeBuff) :
+
+def applyDebuff(state, debuf) :
     newState = copy.deepcopy(state)
-    newState['player']['buff'] = [ b for b in newState['player']['buff'] if b[0]['name'] not in removeBuff ]
-    newState['timeline']['nextActions'] = [ na for na in newState['timeline']['nextActions'] if na[1] not in [ { 'type': 'removeBuff', 'name': bn } for bn in removeBuff ] ]
+    debufList = newState['enemy']['debuff']
+    debufNames = [ d['name'] for d in debufList ]
+    if debuf['name'] in debufNames :
+        newState['timeline']['nextActions'] = [ na for na in newState['timeline']['nextActions'] if na[1] != { 'type': 'removeDebuff', 'name': debuf['name'] } ]
+        newState = addAction(newState, debuf['duration'], { 'type': 'removeDebuff', 'name': debuf['name'] })
+    else :
+        newState['enemy']['debuff'] = newState['enemy']['debuff'] + [ debuf ]
+        newState = addAction(newState, debuf['duration'], { 'type': 'removeDebuff', 'name': debuf['name'] })
+    return newState
+    
+def removeBuff(state, remBuff) :
+    newState = copy.deepcopy(state)
+    newState['player']['buff'] = [ b for b in newState['player']['buff'] if b[0]['name'] not in remBuff ]
+    newState['timeline']['nextActions'] = [ na for na in newState['timeline']['nextActions'] if na[1] not in [ { 'type': 'removeBuff', 'name': bn } for bn in remBuff ] ]
+    return newState
+    
+def removeDebuff(state, remDebuff) :
+    newState = copy.deepcopy(state)
+    newState['enemy']['debuff'] = [ d for d in newState['enemy']['debuff'] if d['name'] not in remDebuff ]
+    newState['timeline']['nextActions'] = [ na for na in newState['timeline']['nextActions'] if na[1] not in [ { 'type': 'removeDebuff', 'name': dn } for dn in remDebuff ] ]
+    return newState
+    
+def removeCooldown(state, remCooldown) :
+    newState = copy.deepcopy(state)
+    newState['player']['cooldown'] = [ c for c in newState['player']['cooldown'] if c['name'] not in remCooldown ]
+    newState['timeline']['nextActions'] = [ na for na in newState['timeline']['nextActions'] if na[1] not in [ { 'type': 'removeCooldown', 'name': cn } for cn in remCooldown ] ]
     return newState
     
 def getDebuff(state, debuffType) :
@@ -481,27 +505,51 @@ def getResistance(state, resType) :
     debufF = reduce(lambda x, y: x + y, getDebuff(state, resType), 0)
     return state['enemy']['resistance'][resType] + debufF
 
+def nextAction(state) :
+    newState = copy.deepcopy(state)
+    newState['timeline'] = {
+        'currentAction': newState['timeline']['nextActions'][0][1],
+        'timestamp': newState['timeline']['nextActions'][0][0],
+        'nextActions': newState['timeline']['nextActions'][1::],
+    }
+    return newState
+
 def applySkill(state, skill) :
+    if skill == None:
+        newState = nextAction(state)
+        return (newState, {})
+    newState = copy.deepcopy(state)
+    if 'skillBuff' in skill :
+        for bufName in skill['skillBuff'] :
+            newState = applyBuff(newState, b[bufName])
     pot = skill['potency']
-    wd = state['player']['baseStats']['weaponDamage']
-    st = state['player']['baseStats']['strength']
-    det = state['player']['baseStats']['determination']
-    crt = state['player']['baseStats']['criticalHitRate']
-    dmgBuf = getBuff(state, 'damage')
-    crtBuf = getBuff(state, 'critChance')
+    wd = newState['player']['baseStats']['weaponDamage']
+    st = newState['player']['baseStats']['strength']
+    det = newState['player']['baseStats']['determination']
+    crt = newState['player']['baseStats']['criticalHitRate']
+    dmgBuf = getBuff(newState, 'damage')
+    crtBuf = getBuff(newState, 'critChance')
     baseDmg = baseDamage(pot, wd, st, det, dmgBuf) 
     crtChc = critChance(crt, crtBuf)
     crtBonF = critBonus(crt)
     crtDmg = baseDmg * (1 + crtChc * crtBonF)
-    dmgRes = getResistance(state, skill['type'])
+    dmgRes = getResistance(newState, skill['type'])
     effDmg = crtDmg / dmgRes
     result = {
         'damage': effDmg,
+        'source': skill['name'],
+        'type': 'skill',
+        'timestamp': newState['timeline']['timestamp'],
         'tpSpent': skill['tpCost'],
     }
-    newState = removeBuff(state, skill['removeBuff'])
-    for bufName in skill['addBuff'] :
-        newState = applyBuff(newState, b[bufName])
+    if 'removeBuff' in skill :
+        newState = removeBuff(newState, skill['removeBuff'])
+    if 'addBuff' in skill :
+        for bufName in skill['addBuff'] :
+            newState = applyBuff(newState, b[bufName])
+    if 'addDebuff' in skill :
+        for debufName in skill['addDebuff'] :
+            newState = applyDebuff(newState, d[debufName])
     if skill['cooldown'] > 0 :
         newState = addAction(newState, skill['cooldown'], { 'type': 'removeCooldown', 'name': skill['name'] })
         newState['player']['cooldown'] = newState['player']['cooldown'] + [ skill['name'] ]
@@ -511,14 +559,219 @@ def applySkill(state, skill) :
     if skill['gcdType'] == 'global' :
         newState = addAction(newState, gcdDuration / 2, { 'type': 'instantSkill' })
         newState = addAction(newState, gcdDuration, { 'type': 'gcdSkill' })
-    newState['timeline'] = {
-        'currentAction': newState['timeline']['nextActions'][0][1],
-        'timestamp': newState['timeline']['nextActions'][0][0],
-        'nextActions': newState['timeline']['nextActions'][1::],
-    }
+    newState = nextAction(newState)
     return (newState, result)
 
-def 
+def applySingleDot(state, dot) :
+    pot = dot['props']['potency']
+    wd = state['player']['baseStats']['weaponDamage']
+    st = state['player']['baseStats']['strength']
+    det = state['player']['baseStats']['determination']
+    crt = state['player']['baseStats']['criticalHitRate']
+    ss = state['player']['baseStats']['skillSpeed']
+    dmgBuf = getBuff(state, 'damage')
+    crtBuf = getBuff(state, 'critChance')
+    ssBuf = dotTick(ss)
+    baseDmg = baseDamage(pot, wd, st, det, dmgBuf + [ ssBuf ]) 
+    crtChc = critChance(crt, crtBuf)
+    crtBonF = critBonus(crt)
+    crtDmg = baseDmg * (1 + crtChc * crtBonF)
+    result = {
+        'damage': crtDmg,
+        'source': dot['name'],
+        'type': 'DoT',
+        'timestamp': state['timeline']['timestamp'],
+    }
+    newState = nextAction(state)
+    return (newState, result)
 
-def solveCurrentAction(state) :
+def applyDot(state) :
+    dotList = [ d for d in state['enemy']['debuff'] if d['type'] == 'DoT' ]
+    newState = copy.deepcopy(state)
+    for d in dotList :
+        newState = addAction(newState, 0, { 'type': 'dot', 'name': d['name'] })
+    newState = addAction(newState, 3, { 'type': 'dotTick' })
+    newState = nextAction(newState)
+    return newState
+
+def formatPriorityList(priorityList) :
+    return [ addHiddenConditions(pe) for pe in priorityList ]
     
+def addHiddenConditions(priorityElement) :
+    skill = s[priorityElement['group']][priorityElement['name']]
+    newPriorityElement = copy.deepcopy(priorityElement)
+    if 'condition' not in newPriorityElement :
+        newPriorityElement['condition'] = {
+            'type': 'gcdType',
+            'comparison': lambda x, y: x == y,
+            'value': skill['gcdType']
+        }
+    else :
+        newPriorityElement['condition'] = {
+            'logic': lambda x, y: x and y,
+            'list': [
+                newPriorityElement['condition'],
+                {
+                    'type': 'gcdType',
+                    'comparison': lambda x, y: x == y,
+                    'value': skill['gcdType']
+                },
+            ],
+        }
+    if 'requiredBuff' in skill :
+        reqBufList = []
+        for bufName in skill['requiredBuff'] :
+            if 'maxStacks' in b[bufName] :
+                reqBufList = reqBufList + [ {
+                    'type': 'buffAtMaxStacks', 
+                    'name': bufName,
+                    'comparison': lambda x, y: x == y,
+                    'value': True,
+                } ]
+            else :
+                reqBufList = reqBufList + [ {
+                    'type': 'buffPresent', 
+                    'name': bufName,
+                    'comparison': lambda x, y: x == y,
+                    'value': True,
+                } ]
+        newPriorityElement['condition'] = {
+            'logic': lambda x, y: x and y,
+            'list': [
+                newPriorityElement['condition'],
+                {
+                    'logic': lambda x, y: x or y,
+                    'list': reqBufList,
+                },
+            ],
+        }
+    if skill['cooldown'] > 0:
+        newPriorityElement['condition'] = {
+            'logic': lambda x, y: x and y,
+            'list': [
+                newPriorityElement['condition'],
+                {
+                    'type': 'cooldownPresent',
+                    'name': skill['name'],
+                    'comparison': lambda x, y: x == y,
+                    'value': True,
+                },
+            ],
+        }
+    return newPriorityElement
+
+def actionToGcdType(actionType) :
+    if actionType == 'gcdSkill':
+        return 'global'
+    elif actionType == 'instantSkill':
+        return 'instant'
+
+def getConditionValue(state, condition) :
+    if condition['type'] == 'buffPresent':
+        return condition['name'] in [ bf[0] for bf in state['player']['buff'] ]
+    elif condition['type'] == 'buffAtMaxStacks':
+        return condition['name'] in [ bf[0] for bf in state['player']['buff'] if bf[1] == b[bf[0]]['maxStacks'] ]
+    elif condition['type'] == 'buffTimeLeft':
+        timers = [ na[0] - state['timeline']['timestamp'] for na in state['timeline']['nextActions'] if na[1] == { 'type': 'removeBuff', 'name': condition['name'] } ]
+        if len(timers) == 0:
+            return 0
+        return min(timers)
+    elif condition['type'] == 'debuffPresent':
+        return condition['name'] in state['enemy']['debuff']
+    elif condition['type'] == 'debuffTimeLeft':
+        timers = [ na[0] - state['timeline']['timestamp'] for na in state['timeline']['nextActions'] if na[1] == { 'type': 'removeDebuff', 'name': condition['name'] } ]
+        if len(timers) == 0:
+            return 0
+        return min(timers)
+    elif condition['type'] == 'cooldownPresent':
+        return condition['name'] in state['player']['cooldown']
+    elif condition['type'] == 'cooldownTimeLeft':
+        timers = [ na[0] - state['timeline']['timestamp'] for na in state['timeline']['nextActions'] if na[1] == { 'type': 'removeCooldown', 'name': condition['name'] } ]
+        if len(timers) == 0:
+            return 0
+        return min(timers)
+    elif condition['type'] == 'gcdType':
+        return actionToGcdType(state['timeline']['currentAction']['type'])
+
+def testCondition(state, condition) :
+    val = getConditionValue(state, condition)
+    return condition['comparison'](val, condition['value'])
+
+def reduceConditions(state, conditions) :
+    if 'logic' in conditions:
+        return reduce(conditions['logic'], [ reduceConditions(state, cond) for cond in conditions['list'] ], True)
+    return testCondition(state, conditions)
+
+def findBestSkill(state, priorityList) :
+    skill = None
+    for priorityElement in priorityList :
+        if reduceConditions(state, priorityElement['condition']) :
+            skill = s[priorityElement['group']][priorityElement['name']]
+            break
+    return skill
+
+def solveCurrentAction(state, priorityList) :
+    actionType = state['timeline']['currentAction']['type']
+    result = {}
+    if actionType == 'removeBuff' :
+        newState = removeBuff(state, [ state['timeline']['currentAction']['name'] ])
+        newState = nextAction(newState)
+    elif actionType == 'removeDebuff' :
+        newState = removeDebuff(state, [ state['timeline']['currentAction']['name'] ])
+        newState = nextAction(newState)
+    elif actionType == 'removeCooldown' :
+        newState = removeCooldown(state, [ state['timeline']['currentAction']['name'] ])
+        newState = nextAction(newState)
+    elif actionType == 'dotTick' :
+        newState = applyDot(state)
+    elif actionType == 'dot' :
+        (newState, result) = applySingleDot(state, d[state['timeline']['currentAction']['name']])
+    elif actionType == 'gcdSkill' or actionType == 'instantSkill' :
+        bestSkill = findBestSkill(state, priorityList)
+        (newState, result) = applySkill(state, bestSkill)
+    return (newState, result)
+
+priorityList = [
+    {
+        'name': 'touchOfDeath',
+        'group': 'pugilist',
+        'condition': {
+            'logic': lambda x, y: x or y,
+            'list': [
+                {
+                    'type': 'debuffTimeLeft',
+                    'name': 'touchOfDeath',
+                    'comparison': lambda x, y: x <= y,
+                    'value': 2,
+                },
+                {
+                    'type': 'debuffPresent',
+                    'name': 'touchOfDeath',
+                    'comparison': lambda x, y: x == y,
+                    'value': False,
+                },
+            ]
+        },
+    },
+    {
+        'name': 'demolish',
+        'group': 'pugilist',
+    },
+    {
+        'name': 'twinSnakes',
+        'group': 'pugilist',
+    },
+        {
+        'name': 'bootshine',
+        'group': 'pugilist',
+    },
+]
+        
+plist = formatPriorityList(priorityList)
+
+states = [state]
+results = []
+nextState = copy.deepcopy(state)
+(nextState, nextResult) = solveCurrentAction(nextState, plist)
+states = states + [nextState]
+results = results + [nextResult]
