@@ -532,26 +532,34 @@ def applySkill(state, skill) :
     if 'skillBuff' in skill :
         for bufName in skill['skillBuff'] :
             newState = applyBuff(newState, b[bufName])
-    pot = skill['potency']
-    wd = newState['player']['baseStats']['weaponDamage']
-    st = newState['player']['baseStats']['strength']
-    det = newState['player']['baseStats']['determination']
-    crt = newState['player']['baseStats']['criticalHitRate']
-    dmgBuf = getBuff(newState, 'damage')
-    crtBuf = getBuff(newState, 'critChance')
-    baseDmg = baseDamage(pot, wd, st, det, dmgBuf) 
-    crtChc = critChance(crt, crtBuf)
-    crtBonF = critBonus(crt)
-    crtDmg = baseDmg * (1 + crtChc * crtBonF)
-    dmgRes = getResistance(newState, skill['type'])
-    effDmg = crtDmg / dmgRes
-    result = {
-        'damage': effDmg,
-        'source': skill['name'],
-        'type': 'skill',
-        'timestamp': newState['timeline']['timestamp'],
-        'tpSpent': skill['tpCost'],
-    }
+    if 'potency' in skill :
+        pot = skill['potency']
+        wd = newState['player']['baseStats']['weaponDamage']
+        st = newState['player']['baseStats']['strength']
+        det = newState['player']['baseStats']['determination']
+        crt = newState['player']['baseStats']['criticalHitRate']
+        dmgBuf = getBuff(newState, 'damage')
+        crtBuf = getBuff(newState, 'critChance')
+        baseDmg = baseDamage(pot, wd, st, det, dmgBuf) 
+        crtChc = critChance(crt, crtBuf)
+        crtBonF = critBonus(crt)
+        crtDmg = baseDmg * (1 + crtChc * crtBonF)
+        dmgRes = getResistance(newState, skill['type'])
+        effDmg = crtDmg / dmgRes
+        result = {
+            'damage': effDmg,
+            'source': skill['name'],
+            'type': 'skill',
+            'timestamp': newState['timeline']['timestamp'],
+            'tpSpent': skill['tpCost'],
+        }
+    else :
+        result = {
+            'source': skill['name'],
+            'type': 'skill',
+            'timestamp': newState['timeline']['timestamp'],
+            'tpSpent': skill['tpCost'],
+        }
     if 'removeBuff' in skill :
         newState = removeBuff(newState, skill['removeBuff'])
     if 'addBuff' in skill :
@@ -680,7 +688,7 @@ def getConditionValue(state, condition) :
     if condition['type'] == 'buffPresent':
         return condition['name'] in [ bf[0]['name'] for bf in state['player']['buff'] ]
     elif condition['type'] == 'buffAtMaxStacks':
-        return condition['name'] in [ bf[0]['name'] for bf in state['player']['buff'] if bf[1] == b[bf[0]]['maxStacks'] ]
+        return condition['name'] in [ bf[0]['name'] for bf in state['player']['buff'] if 'maxStacks' in b[bf[0]['name']] and bf[1] == b[bf[0]['name']]['maxStacks'] ]
     elif condition['type'] == 'buffTimeLeft':
         timers = [ na[0] - state['timeline']['timestamp'] for na in state['timeline']['nextActions'] if na[1] == { 'type': 'removeBuff', 'name': condition['name'] } ]
         if len(timers) == 0:
@@ -742,6 +750,58 @@ def solveCurrentAction(state, priorityList) :
     return (newState, result)
 
 priorityList = [
+    {
+        'name': 'internalRelease',
+        'group': 'pugilist',
+        'condition': {
+            'logic': lambda x, y: x and y,
+            'list': [
+                {
+                    'type': 'buffAtMaxStacks',
+                    'name': 'greasedLightning',
+                    'comparison': lambda x, y: x == y,
+                    'value': True,
+                },
+                {
+                    'type': 'cooldownTimeLeft',
+                    'name': 'elixirField',
+                    'comparison': lambda x, y: x <= y,
+                    'value': 5,
+                },
+            ]
+        }
+    },
+    {
+        'name': 'howlingFist',
+        'group': 'pugilist',
+        'condition': {
+            'type': 'buffPresent',
+            'name': 'internalRelease',
+            'comparison': lambda x, y: x == y,
+            'value': True,
+        }
+    },
+    {
+        'name': 'elixirField',
+        'group': 'monk',
+        'condition': {
+            'logic': lambda x, y: x or y,
+            'list': [
+                {
+                    'type': 'buffPresent',
+                    'name': 'internalRelease',
+                    'comparison': lambda x, y: x == y,
+                    'value': True,
+                },
+                {
+                    'type': 'cooldownTimeLeft',
+                    'name': 'internalRelease',
+                    'comparison': lambda x, y: x >= y,
+                    'value': 20,
+                },
+            ],
+        }
+    },
     {
         'name': 'steelPeak',
         'group': 'pugilist',
