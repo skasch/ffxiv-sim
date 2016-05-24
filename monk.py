@@ -470,14 +470,24 @@ def applyBuff(state, buf) :
 
 def applyDebuff(state, debuf) :
     newState = copy.deepcopy(state)
+    snapDebuf = copy.deepcopy(debuf)
+    if snapDebuf['type'] == 'DoT':
+        snapDebuf['snapshot'] = {
+            'player': { 
+                'baseStats': state['player']['baseStats'],
+                'buff': state['player']['buff'],
+            },
+            'enemy': { 
+                'debuff': [ d for d in state['enemy']['debuff'] if d['type'] != 'DoT' ],
+            },
+        }
     debufList = newState['enemy']['debuff']
     debufNames = [ d['name'] for d in debufList ]
     if debuf['name'] in debufNames :
         newState['timeline']['nextActions'] = [ na for na in newState['timeline']['nextActions'] if na[1] != { 'type': 'removeDebuff', 'name': debuf['name'] } ]
-        newState = addAction(newState, debuf['duration'], { 'type': 'removeDebuff', 'name': debuf['name'] })
-    else :
-        newState['enemy']['debuff'] = newState['enemy']['debuff'] + [ debuf ]
-        newState = addAction(newState, debuf['duration'], { 'type': 'removeDebuff', 'name': debuf['name'] })
+        newState['enemy']['debuff'] = [ d for d in newState['enemy']['debuff'] if d['name'] != debuf['name'] ]
+    newState['enemy']['debuff'] = newState['enemy']['debuff'] + [ snapDebuf ]
+    newState = addAction(newState, debuf['duration'], { 'type': 'removeDebuff', 'name': debuf['name'] })
     return newState
     
 def removeBuff(state, remBuff) :
@@ -564,13 +574,13 @@ def applySkill(state, skill) :
 
 def applySingleDot(state, dot) :
     pot = dot['props']['potency']
-    wd = state['player']['baseStats']['weaponDamage']
-    st = state['player']['baseStats']['strength']
-    det = state['player']['baseStats']['determination']
-    crt = state['player']['baseStats']['criticalHitRate']
-    ss = state['player']['baseStats']['skillSpeed']
-    dmgBuf = getBuff(state, 'damage')
-    crtBuf = getBuff(state, 'critChance')
+    wd = dot['snapshot']['player']['baseStats']['weaponDamage']
+    st = dot['snapshot']['player']['baseStats']['strength']
+    det = dot['snapshot']['player']['baseStats']['determination']
+    crt = dot['snapshot']['player']['baseStats']['criticalHitRate']
+    ss = dot['snapshot']['player']['baseStats']['skillSpeed']
+    dmgBuf = getBuff(dot['snapshot'], 'damage')
+    crtBuf = getBuff(dot['snapshot'], 'critChance')
     ssBuf = dotTick(ss)
     baseDmg = baseDamage(pot, wd, st, det, dmgBuf + [ ssBuf ]) 
     crtChc = critChance(crt, crtBuf)
@@ -725,7 +735,7 @@ def solveCurrentAction(state, priorityList) :
     elif actionType == 'dotTick' :
         newState = applyDot(state)
     elif actionType == 'dot' :
-        (newState, result) = applySingleDot(state, d[state['timeline']['currentAction']['name']])
+        (newState, result) = applySingleDot(state, [ d for d in state['enemy']['debuff'] if d['name'] == state['timeline']['currentAction']['name'] ][0])
     elif actionType == 'gcdSkill' or actionType == 'instantSkill' :
         bestSkill = findBestSkill(state, priorityList)
         (newState, result) = applySkill(state, bestSkill)
@@ -739,7 +749,7 @@ priorityList = [
             'type': 'debuffTimeLeft',
             'name': 'touchOfDeath',
             'comparison': lambda x, y: x <= y,
-            'value': 2,
+            'value': 1.5,
         },
     },
     {
@@ -755,7 +765,7 @@ priorityList = [
         'group': 'pugilist',
     },
 ]
-        
+
 plist = formatPriorityList(priorityList)
 
 states = [state]
@@ -763,6 +773,7 @@ results = []
 nextState = copy.deepcopy(state)
 maxTime = 8 * 60
 while nextState['timeline']['timestamp'] <= maxTime:
+    print(len(results))
     (nextState, nextResult) = solveCurrentAction(nextState, plist)
     states = states + [nextState]
     results = results + [nextResult]
