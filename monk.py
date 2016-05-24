@@ -504,7 +504,7 @@ def removeDebuff(state, remDebuff) :
     
 def removeCooldown(state, remCooldown) :
     newState = copy.deepcopy(state)
-    newState['player']['cooldown'] = [ c for c in newState['player']['cooldown'] if c['name'] not in remCooldown ]
+    newState['player']['cooldown'] = [ c for c in newState['player']['cooldown'] if c not in remCooldown ]
     newState['timeline']['nextActions'] = [ na for na in newState['timeline']['nextActions'] if na[1] not in [ { 'type': 'removeCooldown', 'name': cn } for cn in remCooldown ] ]
     return newState
     
@@ -664,7 +664,7 @@ def addHiddenConditions(priorityElement) :
                     'type': 'cooldownPresent',
                     'name': skill['name'],
                     'comparison': lambda x, y: x == y,
-                    'value': True,
+                    'value': False,
                 },
             ],
         }
@@ -742,6 +742,10 @@ def solveCurrentAction(state, priorityList) :
     return (newState, result)
 
 priorityList = [
+    {
+        'name': 'steelPeak',
+        'group': 'pugilist',
+    },
     {
         'name': 'touchOfDeath',
         'group': 'pugilist',
