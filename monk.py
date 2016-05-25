@@ -400,7 +400,7 @@ state['enemy'] = {
 state['timeline'] = {
     'timestamp': 0,
     'currentAction': {'type': 'gcdSkill'},
-    'nextActions': [ (1, {'type': 'dotTick' }) ],
+    'nextActions': [ (0.5, {'type': 'autoAttack' }), (1, {'type': 'dotTick' }) ],
 }
 
 # Player stats
@@ -411,6 +411,8 @@ state['player']['baseStats'] = {
     'attackPower': 484,
     'skillSpeed': 413,
     'weaponDamage': 46,
+    'weaponDelay': 2.64,
+    'weaponType': 'blunt',
 }
 
 # Damage formula
@@ -527,6 +529,35 @@ def nextAction(state) :
         'nextActions': newState['timeline']['nextActions'][1::],
     }
     return newState
+
+def applyAutoAttack(state) :
+    newState = copy.deepcopy(state)
+    pot = 100 * newState['player']['baseStats']['weaponDelay'] / 3
+    wd = newState['player']['baseStats']['weaponDamage']
+    st = newState['player']['baseStats']['strength']
+    det = newState['player']['baseStats']['determination']
+    crt = newState['player']['baseStats']['criticalHitRate']
+    dmgBuf = getBuff(newState, 'damage')
+    crtBuf = getBuff(newState, 'critChance')
+    baseDmg = baseDamage(pot, wd, st, det, dmgBuf) 
+    basePot = basePotency(pot, dmgBuf)
+    crtChc = critChance(crt, crtBuf)
+    crtBonF = critBonus(crt)
+    crtDmg = baseDmg * (1 + crtChc * crtBonF)
+    crtPot = basePot * (1 + crtChc * crtBonF)
+    dmgRes = getResistance(newState, newState['player']['baseStats']['weaponType'])
+    effDmg = crtDmg * dmgRes
+    effPot = crtPot * dmgRes
+    result = {
+        'damage': effDmg,
+        'potency': effPot, 
+        'type': 'autoAttack',
+        'timestamp': newState['timeline']['timestamp'],
+    }
+    autoAttackDelay = newState['player']['baseStats']['weaponDelay']
+    newState = addAction(newState, autoAttackDelay, { 'type': 'autoAttack' })
+    newState = nextAction(newState)
+    return (newState, result)
 
 def applySkill(state, skill) :
     if skill == None:
@@ -758,6 +789,8 @@ def solveCurrentAction(state, priorityList) :
     elif actionType == 'gcdSkill' or actionType == 'instantSkill' :
         bestSkill = findBestSkill(state, priorityList)
         (newState, result) = applySkill(state, bestSkill)
+    elif actionType == 'autoAttack' :
+        (newState, result) = applyAutoAttack(state)
     return (newState, result)
 
 priorityList = [
@@ -845,7 +878,7 @@ priorityList = [
             'type': 'debuffTimeLeft',
             'name': 'demolish',
             'comparison': lambda x, y: x <= y,
-            'value': 1.5,
+            'value': 4,
         },
     },
     {
@@ -855,7 +888,7 @@ priorityList = [
             'type': 'buffTimeLeft',
             'name': 'twinSnakes',
             'comparison': lambda x, y: x <= y,
-            'value': 2,
+            'value': 5,
         },
     },
     {
@@ -873,7 +906,7 @@ priorityList = [
             'type': 'debuffTimeLeft',
             'name': 'dragonKick',
             'comparison': lambda x, y: x <= y,
-            'value': 2,
+            'value': 5,
         },
     },
     {
