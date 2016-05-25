@@ -6,6 +6,7 @@ Created on Thu May 19 15:30:35 2016
 """
 # imports
 import copy
+TIME_EPSILON = 0.000000001
 
 # Skills
 s = {}
@@ -21,6 +22,7 @@ s['pugilist']['bootshine'] = {
     'range': 3,
     'radius': 0,
     'potency': 150,
+    'animationLock': 0.75,
     'type': 'blunt',
     'skillBuff': ['bootshineCrit'],
     'removeBuff': ['opoOpoForm'],
@@ -36,6 +38,7 @@ s['pugilist']['trueStrike'] = {
     'range': 3,
     'radius': 0,
     'potency': 190,
+    'animationLock': 0.75,
     'type': 'blunt',
     'requiredBuff': ['raptorForm', 'perfectBalance'],
     'removeBuff': ['raptorForm'],
@@ -51,6 +54,7 @@ s['pugilist']['snapPunch'] = {
     'range': 3,
     'radius': 0,
     'potency': 180,
+    'animationLock': 0.75,
     'type': 'blunt',
     'requiredBuff': ['coerlForm', 'perfectBalance'],
     'removeBuff': ['coerlForm'],
@@ -63,6 +67,7 @@ s['pugilist']['internalRelease'] = {
     'gcdType': 'instant',
     'cooldown': 60,
     'castTime': 0,
+    'animationLock': 0.75,
     'addBuff': ['internalRelease'],
 }
 s['pugilist']['touchOfDeath'] = {
@@ -75,6 +80,7 @@ s['pugilist']['touchOfDeath'] = {
     'range': 3,
     'radius': 0,
     'potency': 20,
+    'animationLock': 0.75,
     'type': 'blunt',
     'addDebuff': ['touchOfDeath'],
 }
@@ -88,6 +94,7 @@ s['pugilist']['twinSnakes'] = {
     'range': 3,
     'radius': 0,
     'potency': 140,
+    'animationLock': 0.75,
     'type': 'blunt',
     'requiredBuff': ['raptorForm', 'perfectBalance'],
     'removeBuff': ['raptorForm'],
@@ -103,6 +110,7 @@ s['pugilist']['demolish'] = {
     'range': 3,
     'radius': 0,
     'potency': 70,
+    'animationLock': 0.75,
     'type': 'blunt',
     'requiredBuff': ['coerlForm', 'perfectBalance'],
     'removeBuff': ['coerlForm'],
@@ -119,6 +127,7 @@ s['pugilist']['steelPeak'] = {
     'range': 3,
     'radius': 0,
     'potency': 150,
+    'animationLock': 0.75,
     'type': 'blunt',
 }
 s['pugilist']['howlingFist'] = {
@@ -131,6 +140,7 @@ s['pugilist']['howlingFist'] = {
     'range': 10,
     'radius': 10,
     'potency': 210,
+    'animationLock': 0.75,
     'type': 'blunt',
 }
 s['pugilist']['perfectBalance'] = {
@@ -140,6 +150,7 @@ s['pugilist']['perfectBalance'] = {
     'gcdType': 'instant',
     'cooldown': 60,
     'castTime': 0,
+    'animationLock': 0.75,
     'addBuff': ['perfectBalance'],
 }
 
@@ -155,6 +166,7 @@ s['monk']['shoulderTackle'] = {
     'range': 20,
     'radius': 0,
     'potency': 100,
+    'animationLock': 0.75,
     'type': 'blunt',
 }
 s['monk']['fistOfFire'] = {
@@ -163,6 +175,7 @@ s['monk']['fistOfFire'] = {
     'gcdType': 'instant',
     'cooldown': 3,
     'castTime': 0,
+    'animationLock': 0.75,
     'addBuff': ['fistOfFire'],
 }
 s['monk']['dragonKick'] = {
@@ -175,6 +188,7 @@ s['monk']['dragonKick'] = {
     'range': 3,
     'radius': 0,
     'potency': 150,
+    'animationLock': 0.75,
     'type': 'blunt',
     'requiredBuff': ['opoOpoForm', 'perfectBalance'],
     'removeBuff': ['opoOpoForm'],
@@ -188,6 +202,7 @@ s['monk']['meditation'] = {
     'gcdType': 'global',
     'cooldown': 0,
     'castTime': 0,
+    'animationLock': 0.75,
     'addBuff': ['chakra'],
 }
 s['monk']['forbiddenChakra'] = {
@@ -200,6 +215,7 @@ s['monk']['forbiddenChakra'] = {
     'range': 3,
     'radius': 0,
     'potency': 320,
+    'animationLock': 0.75,
     'type': 'blunt',
     'requiredBuff': ['chakra'],
     'removeBuff': ['chakra'],
@@ -214,6 +230,7 @@ s['monk']['elixirField'] = {
     'range': 0,
     'radius': 5,
     'potency': 220,
+    'animationLock': 0.75,
     'type': 'blunt',
 }
 s['monk']['tornadoKick'] = {
@@ -226,6 +243,7 @@ s['monk']['tornadoKick'] = {
     'range': 3,
     'radius': 0,
     'potency': 330,
+    'animationLock': 0.75,
     'type': 'blunt',
     'requiredBuff': ['greasedLightning'],
     'removeBuff': ['greasedLightning'],
@@ -240,6 +258,7 @@ s['lancer']['bloodForBlood'] = {
     'gcdType': 'instant',
     'cooldown': 80,
     'castTime': 0,
+    'animationLock': 0.75,
     'addBuff': ['bloodForBlood'],
 }
 
@@ -255,6 +274,7 @@ s['marauder']['fracture'] = {
     'range': 3,
     'radius': 0,
     'potency': 100,
+    'animationLock': 0.75,
     'type': 'slashing',
     'addDebuff': ['fracture'],
 }
@@ -268,6 +288,7 @@ s['marauder']['mercyStroke'] = {
     'range': 3,
     'radius': 0,
     'potency': 200,
+    'animationLock': 0.75,
     'type': 'slashing',
     'requiredDebuff': ['lowLife'],
 }
@@ -280,6 +301,7 @@ s['item']['potionOfStrength'] = {
     'gcdType': 'instant',
     'cooldown': 300,
     'castTime': 0,
+    'animationLock': 0.75,
     'addBuff': ['potionOfStrength'],
 }
 s['item']['potionOfStrengthHQ'] = {
@@ -288,6 +310,7 @@ s['item']['potionOfStrengthHQ'] = {
     'gcdType': 'instant',
     'cooldown': 300,
     'castTime': 0,
+    'animationLock': 0.75,
     'addBuff': ['potionOfStrengthHQ'],
 }
 
@@ -651,8 +674,14 @@ def applySkill(state, skill) :
     ssBuf = getBuff(newState, 'speed')
     gcdDuration = gcdTick(ss, ssBuf)
     if skill['gcdType'] == 'global' :
-        newState = addAction(newState, gcdDuration / 2, { 'type': 'instantSkill' })
+        newState = addAction(newState, skill['animationLock'], { 'type': 'instantSkill' })
         newState = addAction(newState, gcdDuration, { 'type': 'gcdSkill' })
+    if skill['gcdType'] == 'instant' :
+        newState = addAction(newState, skill['animationLock'], { 'type': 'instantSkill' })
+        nextGcdTimestamp = min( na[0] for na in newState['timeline']['nextActions'] if na[1]['type'] == 'gcdSkill' )
+        if nextGcdTimestamp < newState['timeline']['timestamp'] + skill['animationLock']:
+            newState['timeline']['nextActions'] = [ na for na in newState['timeline']['nextActions'] if na[1]['type'] != 'gcdSkill' ]
+            newState = addAction(newState, skill['animationLock'] + TIME_EPSILON, { 'type': 'gcdSkill' })
     newState = nextAction(newState)
     return (newState, result)
 
@@ -757,6 +786,19 @@ def addHiddenConditions(priorityElement) :
                 },
             ],
         }
+    if skill['gcdType'] == 'instant':
+        newPriorityElement['condition'] = {
+            'logic': lambda x, y: x and y,
+            'list': [
+                newPriorityElement['condition'],
+                {
+                    'type': 'gcdDelay',
+                    'delay': skill['animationLock'],
+                    'comparison': lambda x, y: x <= y,
+                    'value': 0,
+                },
+            ],
+        }
     return newPriorityElement
 
 def actionToGcdType(actionType) :
@@ -791,6 +833,11 @@ def getConditionValue(state, condition) :
         return min(timers)
     elif condition['type'] == 'gcdType':
         return actionToGcdType(state['timeline']['currentAction']['type'])
+    elif condition['type'] == 'gcdDelay':
+        if state['timeline']['currentAction']['type'] == 'gcdSkill':
+            return condition['delay']
+        nextGcdTimestamp = min( na[0] for na in state['timeline']['nextActions'] if na[1]['type'] == 'gcdSkill' )
+        return max(0, state['timeline']['timestamp'] + condition['delay'] - nextGcdTimestamp)
 
 def testCondition(state, condition) :
     val = getConditionValue(state, condition)
@@ -1028,4 +1075,4 @@ while nextState['timeline']['timestamp'] <= maxTime:
     states = states + [nextState]
     results = results + [nextResult]
 sum( r['damage'] for r in results if 'damage' in r ) / maxTime
-sum( r['potency'] for r in results if 'potency' in r ) / maxTime
+# sum( r['potency'] for r in results if 'potency' in r ) / maxTime
