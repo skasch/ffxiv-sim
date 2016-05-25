@@ -172,6 +172,7 @@ s['monk']['shoulderTackle'] = {
 s['monk']['fistOfFire'] = {
     'name': 'fistOfFire',
     'level': 40,
+    'tpCost': 0,
     'gcdType': 'instant',
     'cooldown': 3,
     'castTime': 0,
@@ -454,9 +455,9 @@ state['enemy'] = {
     }
 }
 state['timeline'] = {
-    'timestamp': 0,
-    'currentAction': {'type': 'gcdSkill'},
-    'nextActions': [ (0.5, {'type': 'autoAttack' }), (1, {'type': 'dotTick' }) ],
+    'timestamp': -1,
+    'currentAction': {'type': 'prepullSkill'},
+    'nextActions': [ (0, { 'type': 'gcdSkill' }), (0.5, { 'type': 'autoAttack' }), (1, { 'type': 'dotTick' }) ],
 }
 
 # Player stats
@@ -521,13 +522,16 @@ def applyBuff(state, buf) :
         if 'maxStacks' in buf :
             newState['player']['buff'] = [ b if b[0]['name'] != buf['name'] else (b[0], min(b[1] + 1, b[0]['maxStacks'])) for b in bufList ]
             newState['timeline']['nextActions'] = [ na for na in newState['timeline']['nextActions'] if na[1] != { 'type': 'removeBuff', 'name': buf['name'] } ]
-            newState = addAction(newState, buf['duration'], { 'type': 'removeBuff', 'name': buf['name'] })
+            if 'duration' in buf:
+                newState = addAction(newState, buf['duration'], { 'type': 'removeBuff', 'name': buf['name'] })
         else :
             newState['timeline']['nextActions'] = [ na for na in newState['timeline']['nextActions'] if na[1] != { 'type': 'removeBuff', 'name': buf['name'] } ]
-            newState = addAction(newState, buf['duration'], { 'type': 'removeBuff', 'name': buf['name'] })
+            if 'duration' in buf:
+                newState = addAction(newState, buf['duration'], { 'type': 'removeBuff', 'name': buf['name'] })
     else :
         newState['player']['buff'] = newState['player']['buff'] + [ (buf, 1) ]
-        newState = addAction(newState, buf['duration'], { 'type': 'removeBuff', 'name': buf['name'] })
+        if 'duration' in buf:
+            newState = addAction(newState, buf['duration'], { 'type': 'removeBuff', 'name': buf['name'] })
     return newState
 
 def applyDebuff(state, debuf) :
@@ -625,7 +629,7 @@ def applySkill(state, skill) :
     if 'skillBuff' in skill :
         for bufName in skill['skillBuff'] :
             newState = applyBuff(newState, b[bufName])
-    if 'potency' in skill :
+    if 'potency' in skill and state['timeline']['currentAction']['type'] != 'prepullSkill' :
         pot = skill['potency']
         wd = newState['player']['baseStats']['weaponDamage']
         st = newState['player']['baseStats']['strength']
@@ -673,15 +677,18 @@ def applySkill(state, skill) :
     ss = newState['player']['baseStats']['skillSpeed']
     ssBuf = getBuff(newState, 'speed')
     gcdDuration = gcdTick(ss, ssBuf)
-    if skill['gcdType'] == 'global' :
-        newState = addAction(newState, skill['animationLock'], { 'type': 'instantSkill' })
-        newState = addAction(newState, gcdDuration, { 'type': 'gcdSkill' })
-    if skill['gcdType'] == 'instant' :
-        newState = addAction(newState, skill['animationLock'], { 'type': 'instantSkill' })
-        nextGcdTimestamp = min( na[0] for na in newState['timeline']['nextActions'] if na[1]['type'] == 'gcdSkill' )
-        if nextGcdTimestamp < newState['timeline']['timestamp'] + skill['animationLock']:
-            newState['timeline']['nextActions'] = [ na for na in newState['timeline']['nextActions'] if na[1]['type'] != 'gcdSkill' ]
-            newState = addAction(newState, skill['animationLock'] + TIME_EPSILON, { 'type': 'gcdSkill' })
+    if state['timeline']['currentAction']['type'] == 'prepullSkill' :
+        newState = addAction(newState, 0, { 'type': 'prepullSkill' })
+    else:
+        if skill['gcdType'] == 'global' :
+            newState = addAction(newState, skill['animationLock'], { 'type': 'instantSkill' })
+            newState = addAction(newState, gcdDuration, { 'type': 'gcdSkill' })
+        if skill['gcdType'] == 'instant' :
+            newState = addAction(newState, skill['animationLock'], { 'type': 'instantSkill' })
+            nextGcdTimestamp = min( na[0] for na in newState['timeline']['nextActions'] if na[1]['type'] == 'gcdSkill' )
+            if nextGcdTimestamp < newState['timeline']['timestamp'] + skill['animationLock']:
+                newState['timeline']['nextActions'] = [ na for na in newState['timeline']['nextActions'] if na[1]['type'] != 'gcdSkill' ]
+                newState = addAction(newState, skill['animationLock'] + TIME_EPSILON, { 'type': 'gcdSkill' })
     newState = nextAction(newState)
     return (newState, result)
 
@@ -804,7 +811,7 @@ def addHiddenConditions(priorityElement) :
 def actionToGcdType(actionType) :
     if actionType == 'gcdSkill':
         return 'global'
-    elif actionType == 'instantSkill':
+    elif actionType == 'instantSkill' or actionType == 'prepullSkill':
         return 'instant'
 
 def getConditionValue(state, condition) :
@@ -875,11 +882,26 @@ def solveCurrentAction(state, priorityList) :
     elif actionType == 'gcdSkill' or actionType == 'instantSkill' :
         bestSkill = findBestSkill(state, priorityList)
         (newState, result) = applySkill(state, bestSkill)
+    elif actionType == 'prepullSkill' :
+        prepullPriorityList = [ priorityElement for priorityElement in priorityList if 'prepull' in priorityElement ]
+        bestSkill = findBestSkill(state, prepullPriorityList)
+        (newState, result) = applySkill(state, bestSkill)
     elif actionType == 'autoAttack' :
         (newState, result) = applyAutoAttack(state)
     return (newState, result)
 
 priorityList = [
+    {
+        'name': 'fistOfFire',
+        'group': 'monk',
+        'prepull': True,
+        'condition': {
+            'type': 'buffPresent',
+            'name': 'fistOfFire',
+            'comparison': lambda x, y: x == y,
+            'value': False,
+        }
+    },
     {
         'name': 'bloodForBlood',
         'group': 'lancer',
