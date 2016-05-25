@@ -272,6 +272,25 @@ s['marauder']['mercyStroke'] = {
     'requiredDebuff': ['lowLife'],
 }
 
+# Items
+s['item'] = {}
+s['item']['potionOfStrength'] = {
+    'name': 'potionOfStrength',
+    'tpCost': 0,
+    'gcdType': 'instant',
+    'cooldown': 300,
+    'castTime': 0,
+    'addBuff': ['potionOfStrength'],
+}
+s['item']['potionOfStrengthHQ'] = {
+    'name': 'potionOfStrength',
+    'tpCost': 0,
+    'gcdType': 'instant',
+    'cooldown': 300,
+    'castTime': 0,
+    'addBuff': ['potionOfStrengthHQ'],
+}
+
 # Buffs
 b = {}
 b['opoOpoForm'] = {
@@ -342,6 +361,20 @@ b['bloodForBlood'] = {
         'damage': 0.1,    
     },
 }
+b['potionOfStrength'] = {
+    'name': 'potionOfStrength',
+    'duration': 15,
+    'buff': {
+        'strength': (0.16, 84),    
+    },
+}
+b['potionOfStrengthHQ'] = {
+    'name': 'potionOfStrengthHQ',
+    'duration': 15,
+    'buff': {
+        'strength': (0.2, 105),    
+    },
+}
 
 # Debuffs
 d = {}
@@ -405,13 +438,13 @@ state['timeline'] = {
 
 # Player stats
 state['player']['baseStats'] = {
-    'strength': 484,
-    'criticalHitRate': 393,
-    'determination': 282,
+    'strength': 1306,
+    'criticalHitRate': 814,
+    'determination': 523,
     'attackPower': 484,
-    'skillSpeed': 413,
-    'weaponDamage': 46,
-    'weaponDelay': 2.64,
+    'skillSpeed': 741,
+    'weaponDamage': 81,
+    'weaponDelay': 2.56,
     'weaponType': 'blunt',
 }
 
@@ -539,7 +572,9 @@ def applyAutoAttack(state) :
     crt = newState['player']['baseStats']['criticalHitRate']
     dmgBuf = getBuff(newState, 'damage')
     crtBuf = getBuff(newState, 'critChance')
-    baseDmg = baseDamage(pot, wd, st, det, dmgBuf) 
+    stBuff = getBuff(newState, 'strength')
+    buffedSt = reduce(lambda x, y: min(x * (1 + y[0]), x + y[1]), stBuff, st)
+    baseDmg = baseDamage(pot, wd, buffedSt, det, dmgBuf) 
     basePot = basePotency(pot, dmgBuf)
     crtChc = critChance(crt, crtBuf)
     crtBonF = critBonus(crt)
@@ -575,7 +610,9 @@ def applySkill(state, skill) :
         crt = newState['player']['baseStats']['criticalHitRate']
         dmgBuf = getBuff(newState, 'damage')
         crtBuf = getBuff(newState, 'critChance')
-        baseDmg = baseDamage(pot, wd, st, det, dmgBuf) 
+        stBuff = getBuff(newState, 'strength')
+        buffedSt = reduce(lambda x, y: min(x * (1 + y[0]), x + y[1]), stBuff, st)
+        baseDmg = baseDamage(pot, wd, buffedSt, det, dmgBuf) 
         basePot = basePotency(pot, dmgBuf)
         crtChc = critChance(crt, crtBuf)
         crtBonF = critBonus(crt)
@@ -629,7 +666,9 @@ def applySingleDot(state, dot) :
     dmgBuf = getBuff(dot['snapshot'], 'damage')
     crtBuf = getBuff(dot['snapshot'], 'critChance')
     ssBuf = dotTick(ss)
-    baseDmg = baseDamage(pot, wd, st, det, dmgBuf + [ ssBuf ]) 
+    stBuff = getBuff(dot['snapshot'], 'strength')
+    buffedSt = reduce(lambda x, y: min(x * (1 + y[0]), x + y[1]), stBuff, st)
+    baseDmg = baseDamage(pot, wd, buffedSt, det, dmgBuf + [ ssBuf ]) 
     basePot = basePotency(pot, dmgBuf + [ ssBuf ])
     crtChc = critChance(crt, crtBuf)
     crtBonF = critBonus(crt)
@@ -795,6 +834,21 @@ def solveCurrentAction(state, priorityList) :
 
 priorityList = [
     {
+        'name': 'bloodForBlood',
+        'group': 'lancer',
+        'condition': {
+            'logic': lambda x, y: x and y,
+            'list': [
+                {
+                    'type': 'buffAtMaxStacks',
+                    'name': 'greasedLightning',
+                    'comparison': lambda x, y: x == y,
+                    'value': True,
+                },
+            ]
+        }
+    },
+    {
         'name': 'internalRelease',
         'group': 'pugilist',
         'condition': {
@@ -810,7 +864,22 @@ priorityList = [
                     'type': 'cooldownTimeLeft',
                     'name': 'elixirField',
                     'comparison': lambda x, y: x <= y,
-                    'value': 5,
+                    'value': 6,
+                },
+            ]
+        }
+    },
+    {
+        'name': 'potionOfStrengthHQ',
+        'group': 'item',
+        'condition': {
+            'logic': lambda x, y: x and y,
+            'list': [
+                {
+                    'type': 'buffAtMaxStacks',
+                    'name': 'greasedLightning',
+                    'comparison': lambda x, y: x == y,
+                    'value': True,
                 },
             ]
         }
@@ -865,6 +934,39 @@ priorityList = [
                 {
                     'type': 'debuffPresent',
                     'name': 'dragonKick',
+                    'comparison': lambda x, y: x == y,
+                    'value': True,
+                },
+                {
+                    'type': 'buffPresent',
+                    'name': 'twinSnakes',
+                    'comparison': lambda x, y: x == y,
+                    'value': True,
+                },
+            ]
+        }
+    },
+    {
+        'name': 'fracture',
+        'group': 'marauder',
+        'condition': {
+            'logic': lambda x, y: x and y,
+            'list': [
+                {
+                    'type': 'debuffTimeLeft',
+                    'name': 'fracture',
+                    'comparison': lambda x, y: x <= y,
+                    'value': 1.5,
+                },
+                {
+                    'type': 'debuffPresent',
+                    'name': 'dragonKick',
+                    'comparison': lambda x, y: x == y,
+                    'value': True,
+                },
+                {
+                    'type': 'buffPresent',
+                    'name': 'twinSnakes',
                     'comparison': lambda x, y: x == y,
                     'value': True,
                 },
