@@ -13,7 +13,7 @@ priorityList = [
         'condition': {
             'type': 'buffPresent',
             'name': 'fistOfFire',
-            'comparison': lambda x, y: x == y,
+            'comparison': 'is',
             'value': False,
         }
     },
@@ -26,12 +26,12 @@ priorityList = [
         'name': 'bloodForBlood',
         'group': 'lancer',
         'condition': {
-            'logic': lambda x, y: x and y,
+            'logic': 'and',
             'list': [
                 {
                     'type': 'buffAtMaxStacks',
                     'name': 'greasedLightning',
-                    'comparison': lambda x, y: x == y,
+                    'comparison': 'is',
                     'value': True,
                 },
             ]
@@ -43,7 +43,7 @@ priorityList = [
         'condition': {
             'type': 'cooldownPresent',
             'name': 'tornadoKick',
-            'comparison': lambda x, y: x == y,
+            'comparison': 'is',
             'value': False,
         }
     },
@@ -51,18 +51,18 @@ priorityList = [
         'name': 'tornadoKick',
         'group': 'monk',
         'condition': {
-            'logic': lambda x, y: x and y,
+            'logic': 'and',
             'list': [
                 {
                     'type': 'buffTimeLeft',
                     'name': 'perfectBalance',
-                    'comparison': lambda x, y: x >= y,
+                    'comparison': '>=',
                     'value': 7,
                 },
                 {
                     'type': 'buffAtMaxStacks',
                     'name': 'greasedLightning',
-                    'comparison': lambda x, y: x == y,
+                    'comparison': 'is',
                     'value': True,
                 }
             ],
@@ -72,18 +72,18 @@ priorityList = [
         'name': 'internalRelease',
         'group': 'pugilist',
         'condition': {
-            'logic': lambda x, y: x and y,
+            'logic': 'and',
             'list': [
                 {
                     'type': 'buffAtMaxStacks',
                     'name': 'greasedLightning',
-                    'comparison': lambda x, y: x == y,
+                    'comparison': 'is',
                     'value': True,
                 },
                 {
                     'type': 'cooldownTimeLeft',
                     'name': 'elixirField',
-                    'comparison': lambda x, y: x <= y,
+                    'comparison': '<=',
                     'value': 6,
                 },
             ]
@@ -93,12 +93,12 @@ priorityList = [
         'name': 'potionOfStrengthHQ',
         'group': 'item',
         'condition': {
-            'logic': lambda x, y: x and y,
+            'logic': 'and',
             'list': [
                 {
                     'type': 'buffAtMaxStacks',
                     'name': 'greasedLightning',
-                    'comparison': lambda x, y: x == y,
+                    'comparison': 'is',
                     'value': True,
                 },
             ]
@@ -110,7 +110,7 @@ priorityList = [
         'condition': {
             'type': 'buffPresent',
             'name': 'internalRelease',
-            'comparison': lambda x, y: x == y,
+            'comparison': 'is',
             'value': True,
         }
     },
@@ -118,18 +118,18 @@ priorityList = [
         'name': 'elixirField',
         'group': 'monk',
         'condition': {
-            'logic': lambda x, y: x or y,
+            'logic': 'or',
             'list': [
                 {
                     'type': 'buffPresent',
                     'name': 'internalRelease',
-                    'comparison': lambda x, y: x == y,
+                    'comparison': 'is',
                     'value': True,
                 },
                 {
                     'type': 'cooldownTimeLeft',
                     'name': 'internalRelease',
-                    'comparison': lambda x, y: x >= y,
+                    'comparison': '>=',
                     'value': 20,
                 },
             ],
@@ -139,12 +139,12 @@ priorityList = [
         'name': 'steelPeak',
         'group': 'pugilist',
         'condition': {
-            'logic': lambda x, y: x and y,
+            'logic': 'and',
             'list': [
                 {
                     'type': 'buffAtMaxStacks',
                     'name': 'greasedLightning',
-                    'comparison': lambda x, y: x == y,
+                    'comparison': 'is',
                     'value': True,
                 },
             ]
@@ -154,24 +154,24 @@ priorityList = [
         'name': 'touchOfDeath',
         'group': 'pugilist',
         'condition': {
-            'logic': lambda x, y: x and y,
+            'logic': 'and',
             'list': [
                 {
                     'type': 'debuffTimeLeft',
                     'name': 'touchOfDeath',
-                    'comparison': lambda x, y: x <= y,
+                    'comparison': '<=',
                     'value': 1.5,
                 },
                 {
                     'type': 'debuffPresent',
                     'name': 'dragonKick',
-                    'comparison': lambda x, y: x == y,
+                    'comparison': 'is',
                     'value': True,
                 },
                 {
                     'type': 'buffPresent',
                     'name': 'twinSnakes',
-                    'comparison': lambda x, y: x == y,
+                    'comparison': 'is',
                     'value': True,
                 },
             ]
@@ -181,24 +181,24 @@ priorityList = [
         'name': 'fracture',
         'group': 'marauder',
         'condition': {
-            'logic': lambda x, y: x and y,
+            'logic': 'and',
             'list': [
                 {
                     'type': 'debuffTimeLeft',
                     'name': 'fracture',
-                    'comparison': lambda x, y: x <= y,
+                    'comparison': '<=',
                     'value': 1.5,
                 },
                 {
                     'type': 'debuffPresent',
                     'name': 'dragonKick',
-                    'comparison': lambda x, y: x == y,
+                    'comparison': 'is',
                     'value': True,
                 },
                 {
                     'type': 'buffPresent',
                     'name': 'twinSnakes',
-                    'comparison': lambda x, y: x == y,
+                    'comparison': 'is',
                     'value': True,
                 },
             ]
@@ -210,7 +210,7 @@ priorityList = [
         'condition': {
             'type': 'debuffTimeLeft',
             'name': 'demolish',
-            'comparison': lambda x, y: x <= y,
+            'comparison': '<=',
             'value': 4,
         },
     },
@@ -220,7 +220,7 @@ priorityList = [
         'condition': {
             'type': 'buffTimeLeft',
             'name': 'twinSnakes',
-            'comparison': lambda x, y: x <= y,
+            'comparison': '<=',
             'value': 5,
         },
     },
@@ -234,7 +234,7 @@ priorityList = [
         'condition': {
             'type': 'debuffTimeLeft',
             'name': 'dragonKick',
-            'comparison': lambda x, y: x <= y,
+            'comparison': '<=',
             'value': 5,
         },
     },

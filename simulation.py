@@ -8,9 +8,12 @@ Created on Thu May 19 15:30:35 2016
 import copy
 import matplotlib.pyplot as pl
 import numpy as np
+from priorityParser import priorityParser
 from priorityManagement import formatPriorityList
-from monkPriorityList import priorityList
 from timelineManagement import solveCurrentAction
+
+model = 'monk'
+priorityList = priorityParser(model)
 
 # Initialize State
 state = {}
@@ -59,9 +62,9 @@ while nextState['timeline']['timestamp'] <= maxTime + prepullEnd:
     prepullEnd = max(nextState['timeline']['prepullTimestamp'].values())
     states = states + [nextState]
     results = results + [nextResult]
-sum( r['damage'] for r in results if 'damage' in r ) / maxTime
 # [ r['source'] for r in results if 'source' in r and r['type'] == 'skill' ]
 # sum( r['potency'] for r in results if 'potency' in r ) / maxTime
+print sum( r['damage'] for r in results if 'damage' in r ) / maxTime
 
 gTimeline = [ prepullEnd ]
 while gTimeline[-1] < maxTime + prepullEnd :
@@ -73,6 +76,7 @@ gDamage = [ sum( r['damage'] for r in results if 'damage' in r and r['timestamp'
 gDPS = [ d / (min(max(gTimeline), t + gDeltaT) - max(min(gTimeline), t - gDeltaT)) for (d, t) in zip(gDamage, gTimeline) ]
 
 pl.plot(gTimeline, gDPS)
+pl.show()
 
 tSkills = [ (r['source'], r['timestamp']) for r in results if 'type' in r and r['type'] == 'skill' ]
 

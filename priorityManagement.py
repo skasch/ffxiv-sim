@@ -9,6 +9,24 @@ import copy
 from skills import s
 from buffs import b
 
+def operatorToFunction(operator) :
+    if operator == 'is':
+        return lambda x, y: x == y
+    elif operator == '>=':
+        return lambda x, y: x >= y
+    elif operator == '>':
+        return lambda x, y: x > y
+    elif operator == '<=':
+        return lambda x, y: x <= y
+    elif operator == '<':
+        return lambda x, y: x < y
+    elif operator == 'isnt':
+        return lambda x, y: x != y
+    elif operator == 'and':
+        return lambda x, y: x and y
+    elif operator == 'or':
+        return lambda x, y: x or y
+
 def formatPriorityList(priorityList) :
     return [ addHiddenConditions(pe) for pe in priorityList ]
     
@@ -18,17 +36,17 @@ def addHiddenConditions(priorityElement) :
     if 'condition' not in newPriorityElement :
         newPriorityElement['condition'] = {
             'type': 'gcdType',
-            'comparison': lambda x, y: x == y,
+            'comparison': 'is',
             'value': skill['gcdType']
         }
     else :
         newPriorityElement['condition'] = {
-            'logic': lambda x, y: x and y,
+            'logic': 'and',
             'list': [
                 newPriorityElement['condition'],
                 {
                     'type': 'gcdType',
-                    'comparison': lambda x, y: x == y,
+                    'comparison': 'is',
                     'value': skill['gcdType']
                 },
             ],
@@ -40,48 +58,48 @@ def addHiddenConditions(priorityElement) :
                 reqBufList = reqBufList + [ {
                     'type': 'buffAtMaxStacks', 
                     'name': bufName,
-                    'comparison': lambda x, y: x == y,
+                    'comparison': 'is',
                     'value': True,
                 } ]
             else :
                 reqBufList = reqBufList + [ {
                     'type': 'buffPresent', 
                     'name': bufName,
-                    'comparison': lambda x, y: x == y,
+                    'comparison': 'is',
                     'value': True,
                 } ]
         newPriorityElement['condition'] = {
-            'logic': lambda x, y: x and y,
+            'logic': 'and',
             'list': [
                 newPriorityElement['condition'],
                 {
-                    'logic': lambda x, y: x or y,
+                    'logic': 'or',
                     'list': reqBufList,
                 },
             ],
         }
     if skill['cooldown'] > 0:
         newPriorityElement['condition'] = {
-            'logic': lambda x, y: x and y,
+            'logic': 'and',
             'list': [
                 newPriorityElement['condition'],
                 {
                     'type': 'cooldownPresent',
                     'name': skill['name'],
-                    'comparison': lambda x, y: x == y,
+                    'comparison': 'is',
                     'value': False,
                 },
             ],
         }
     if skill['gcdType'] == 'instant' and 'prepull' not in newPriorityElement:
         newPriorityElement['condition'] = {
-            'logic': lambda x, y: x and y,
+            'logic': 'and',
             'list': [
                 newPriorityElement['condition'],
                 {
                     'type': 'gcdDelay',
                     'delay': skill['animationLock'],
-                    'comparison': lambda x, y: x <= y,
+                    'comparison': '<=',
                     'value': 0,
                 },
             ],
@@ -128,9 +146,9 @@ def getConditionValue(state, condition) :
 
 def testCondition(state, condition) :
     val = getConditionValue(state, condition)
-    return condition['comparison'](val, condition['value'])
+    return operatorToFunction(condition['comparison'])(val, condition['value'])
 
 def reduceConditions(state, conditions) :
     if 'logic' in conditions:
-        return reduce(conditions['logic'], [ reduceConditions(state, cond) for cond in conditions['list'] ])
+        return reduce(operatorToFunction(conditions['logic']), [ reduceConditions(state, cond) for cond in conditions['list'] ])
     return testCondition(state, conditions)
