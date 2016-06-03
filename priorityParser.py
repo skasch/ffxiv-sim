@@ -110,3 +110,21 @@ def priorityParser(plFile, absolute = False) :
             pElement['condition'] = unfoldConditions(pLine)
         pList = pList + [pElement]
     return pList
+
+def foldConditions(condition) :
+    if 'comparison' in condition :
+        return condition['type'] + '.' + condition['name'] + ' ' + condition['comparison'] + ' ' + str(condition['value'])
+    else :
+        return '(' + (' ' + condition['logic'] + ' ').join([ foldConditions(c) for c in condition['list'] ]) + ')'
+
+def priorityDeparser(pList) :
+    pLines = []
+    for pElem in pList:
+        pLine = ''
+        if 'prepull' in pElem:
+            pLine = 'prepull '
+        pLine = pLine + pElem['group'] + '.' + pElem['name']
+        if 'condition' in pElem and pElem['condition'] != None:
+            pLine = pLine + ' if ' + foldConditions(pElem['condition'])
+        pLines = pLines + [pLine]
+    return '\n'.join(pLines)

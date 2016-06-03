@@ -97,3 +97,5 @@ tSkillCounts = np.array([ gDmgSourceNames[gDmgOrder], gCountAttacks[gDmgOrder], 
 dmgBar = pl.bar(range(len(gDmgSourceNames)), gDamageAttacks[gDmgOrder])
 pl.xticks( [ i + 0.5 for i in range(len(gDmgSourceNames)) ], gDmgSourceNames[gDmgOrder], rotation=90)
 pl.show()
+
+print sum( r['damage'] for r in results if 'damage' in r ) / maxTime
