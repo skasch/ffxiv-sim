@@ -99,3 +99,5 @@ pl.xticks( [ i + 0.5 for i in range(len(gDmgSourceNames)) ], gDmgSourceNames[gDm
 pl.show()
 
 print sum( r['damage'] for r in results if 'damage' in r ) / maxTime
+
+gCycleSkills = np.array([ r['source'] for r in results if 'source' in r and r['type'] == 'skill' ])

@@ -145,7 +145,7 @@ def s():
         'level': 46,
         'tpCost': 0,
         'gcdType': 'instant',
-        'cooldown': 60,
+        'cooldown': 240,
         'castTime': 0,
         'animationLock': 0.75,
         'addBuff': ['perfectBalance'],
@@ -303,7 +303,7 @@ def s():
         'addBuff': ['potionOfStrength'],
     }
     s['item']['potionOfStrengthHQ'] = {
-        'name': 'potionOfStrength',
+        'name': 'potionOfStrengthHQ',
         'tpCost': 0,
         'gcdType': 'instant',
         'cooldown': 300,
