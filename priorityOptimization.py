@@ -71,8 +71,10 @@ unoptimized = True
 while unoptimized :
     unoptimized = False
     for i in range(len(priorityList) - 1):
+        # for j in range(i + 1, len(priorityList)):
+        j = i+1
         newPriorityList = copy.deepcopy(priorityList)
-        newPriorityList[i], newPriorityList[i+1] = newPriorityList[i+1], newPriorityList[i]
+        newPriorityList[i], newPriorityList[j] = newPriorityList[j], newPriorityList[i]
         plist = formatPriorityList(newPriorityList)
         
         states = [state]
@@ -90,10 +92,10 @@ while unoptimized :
         print newDPS
         if newDPS > refDPS * 1.0001:
             unoptimized = True
-            bestPerm = i
+            bestPerm = (i, j)
             refDPS = newDPS
     if unoptimized :
-        priorityList[bestPerm], priorityList[bestPerm+1] = priorityList[bestPerm+1], priorityList[bestPerm]
+        priorityList[bestPerm[0]], priorityList[bestPerm[1]] = priorityList[bestPerm[1]], priorityList[bestPerm[0]]
 
 print priorityDeparser(priorityList)
         

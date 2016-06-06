@@ -39,7 +39,8 @@ def solveCurrentAction(state, priorityList) :
         bestSkill = findBestSkill(state, prepullPriorityList)
         (newState, result) = applySkill(state, bestSkill)
     elif actionType == 'gcdSkill' or actionType == 'instantSkill' :
-        bestSkill = findBestSkill(state, priorityList)
+        cyclePriorityList = [ priorityElement for priorityElement in priorityList if 'prepull' not in priorityElement ]
+        bestSkill = findBestSkill(state, cyclePriorityList)
         (newState, result) = applySkill(state, bestSkill)
     elif actionType == 'autoAttack' :
         (newState, result) = applyAutoAttack(state)

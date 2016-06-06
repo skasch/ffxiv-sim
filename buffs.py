@@ -65,7 +65,7 @@ def b():
     }
     b['chakra'] = {
         'name': 'chakra',
-        'maxStack': 5,
+        'maxStacks': 5,
         'buff': {},
     }
     b['bloodForBlood'] = {

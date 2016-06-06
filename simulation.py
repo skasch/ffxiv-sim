@@ -64,7 +64,8 @@ while nextState['timeline']['timestamp'] <= maxTime + prepullEnd:
     results = results + [nextResult]
 # [ r['source'] for r in results if 'source' in r and r['type'] == 'skill' ]
 # sum( r['potency'] for r in results if 'potency' in r ) / maxTime
-print sum( r['damage'] for r in results if 'damage' in r ) / maxTime
+avgDPS = sum( r['damage'] for r in results if 'damage' in r ) / maxTime
+print avgDPS
 
 gTimeline = [ prepullEnd ]
 while gTimeline[-1] < maxTime + prepullEnd :
@@ -90,14 +91,54 @@ gDamagePctAttacks = np.array([ d / sum(gDamageAttacks) * 100 for d in gDamageAtt
 gDPSAttacks = np.array([ d / maxTime for d in gDamageAttacks ])
 gAvgDmgAttacks = np.array([ d / c for (c, d) in zip(gCountAttacks, gDamageAttacks) ])
 
-gDmgOrder = [i[0] for i in sorted(enumerate(gDamageAttacks), key = lambda x: x[1], reverse = True)]
+gDmgOrder = [ i[0] for i in sorted(enumerate(gDamageAttacks), key = lambda x: x[1], reverse = True) ]
 
 tSkillCounts = np.array([ gDmgSourceNames[gDmgOrder], gCountAttacks[gDmgOrder], gDamageAttacks[gDmgOrder], gDamagePctAttacks[gDmgOrder], gDPSAttacks[gDmgOrder], gAvgDmgAttacks[gDmgOrder] ])
 
 dmgBar = pl.bar(range(len(gDmgSourceNames)), gDamageAttacks[gDmgOrder])
-pl.xticks( [ i + 0.5 for i in range(len(gDmgSourceNames)) ], gDmgSourceNames[gDmgOrder], rotation=90)
+pl.xticks([ i + 0.5 for i in range(len(gDmgSourceNames)) ], gDmgSourceNames[gDmgOrder], rotation=90)
 pl.show()
 
 print sum( r['damage'] for r in results if 'damage' in r ) / maxTime
+print sum( r['tpSpent'] for r in results if 'tpSpent' in r ) / maxTime
 
 gCycleSkills = np.array([ r['source'] for r in results if 'source' in r and r['type'] == 'skill' ])
+
+stats = ['strength', 'criticalHitRate', 'determination', 'skillSpeed', 'weaponDamage']
+
+# Player stats
+state['player']['baseStats'] = {
+    'strength': 1306,
+    'criticalHitRate': 814,
+    'determination': 523,
+    'attackPower': 484,
+    'skillSpeed': 741,
+    'weaponDamage': 81,
+    'weaponDelay': 2.56,
+    'weaponType': 'blunt',
+}
+
+
+statWeights = {}
+
+for cStat in stats :
+    mState = copy.deepcopy(state)
+    mState['player']['baseStats'][cStat] = mState['player']['baseStats'][cStat] + 1
+    states = [mState]
+    results = []
+    nextState = copy.deepcopy(mState)
+    prepullEnd = 0
+    while nextState['timeline']['timestamp'] <= maxTime + prepullEnd:
+        (nextState, nextResult) = solveCurrentAction(nextState, plist)
+        prepullEnd = max(nextState['timeline']['prepullTimestamp'].values())
+        states = states + [nextState]
+        results = results + [nextResult]
+    # [ r['source'] for r in results if 'source' in r and r['type'] == 'skill' ]
+    # sum( r['potency'] for r in results if 'potency' in r ) / maxTime
+    cDPS = sum( r['damage'] for r in results if 'damage' in r ) / maxTime
+    statWeights[cStat] = cDPS - avgDPS
+
+for cStat in stats :
+    statWeights[cStat] = statWeights[cStat] / statWeights['strength']
+
+print statWeights

@@ -201,6 +201,7 @@ def s():
         'cooldown': 0,
         'castTime': 0,
         'animationLock': 0.75,
+        'gcdModifier': 0.5,
         'addBuff': ['chakra'],
     }
     s['monk']['forbiddenChakra'] = {

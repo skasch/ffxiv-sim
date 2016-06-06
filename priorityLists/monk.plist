@@ -1,15 +1,17 @@
-prepull pugilist.perfectBalance
+prepull monk.meditation if buffAtMaxStacks.chakra is False
 prepull monk.fistOfFire if buffPresent.fistOfFire is False
+prepull pugilist.perfectBalance if buffAtMaxStacks.chakra is True
 lancer.bloodForBlood if buffAtMaxStacks.greasedLightning is True
 pugilist.perfectBalance if cooldownPresent.tornadoKick is False
 monk.tornadoKick if (buffTimeLeft.perfectBalance >= 5.0 and buffAtMaxStacks.greasedLightning is True)
 item.potionOfStrengthHQ if buffAtMaxStacks.greasedLightning is True
 pugilist.internalRelease if (buffAtMaxStacks.greasedLightning is True and cooldownTimeLeft.elixirField <= 10.0)
-pugilist.howlingFist if buffPresent.internalRelease is True
+monk.forbiddenChakra if buffPresent.internalRelease is True
 monk.elixirField if (buffPresent.internalRelease is True or cooldownTimeLeft.internalRelease >= 24.0)
+pugilist.howlingFist if buffPresent.internalRelease is True
 pugilist.steelPeak if buffAtMaxStacks.greasedLightning is True
-pugilist.touchOfDeath if (debuffTimeLeft.touchOfDeath <= 1.5 and debuffPresent.dragonKick is True and buffPresent.twinSnakes is True)
 pugilist.demolish if debuffTimeLeft.demolish <= 4.5
+pugilist.touchOfDeath if (debuffTimeLeft.touchOfDeath <= 1.5 and debuffPresent.dragonKick is True and buffPresent.twinSnakes is True)
 pugilist.twinSnakes if buffTimeLeft.twinSnakes <= 4.5
 marauder.fracture if (debuffTimeLeft.fracture <= 1.5 and debuffPresent.dragonKick is True and buffPresent.twinSnakes is True)
 pugilist.snapPunch

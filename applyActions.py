@@ -56,7 +56,7 @@ def applySkill(state, skill) :
     if skill == None:
         if any(newState['timeline']['prepull'].values()) :
             newState['timeline']['prepull'][actionToGcdType(newState['timeline']['currentAction']['type'])] = False
-        if newState['timeline']['currentAction']['type'] == 'gcdSkill' and newState['timeline']['timestamp'] == 0:
+        if newState['timeline']['currentAction']['type'] == 'gcdSkill':
             newState = addAction(newState, 0, { 'type': 'instantSkill' })
             newState = addAction(newState, TIME_EPSILON, { 'type': 'gcdSkill' })
         newState = nextAction(newState)
@@ -113,10 +113,12 @@ def applySkill(state, skill) :
     ssBuf = getBuff(newState, 'speed')
     gcdDuration = gcdTick(ss, ssBuf)
     if any(newState['timeline']['prepull'].values()) :
+        newState['timeline']['prepull']['global'] = True
+        newState['timeline']['prepull']['instant'] = True
         newState['timeline']['prepullTimestamp'][skill['gcdType']] = newState['timeline']['timestamp'] + skill['animationLock']
     if skill['gcdType'] == 'global' :
         newState = addAction(newState, skill['animationLock'], { 'type': 'instantSkill' })
-        newState = addAction(newState, gcdDuration, { 'type': 'gcdSkill' })
+        newState = addAction(newState, gcdDuration * (skill['gcdModifier'] if 'gcdModifier' in skill else 1), { 'type': 'gcdSkill' })
     if skill['gcdType'] == 'instant' :
         newState = addAction(newState, skill['animationLock'], { 'type': 'instantSkill' })
         nextGcdTimestamp = min( na[0] for na in newState['timeline']['nextActions'] if na[1]['type'] == 'gcdSkill' )
