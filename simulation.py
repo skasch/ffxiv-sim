@@ -16,12 +16,12 @@ weaponDamage = 81
 weaponDelay = 2.56
 weaponType = 'blunt'
 duration = 8
-variation = 0
-nbSim = 1
+variation = 0.2
+nbSim = 100
 runStatWeights = False
-random = False
+randomize = True
 
-(states, results, avgDPS, tSkillCounts, gCycleSkills, statWeights) = simulate(
+(states, results, avgDPS, avgTPSPS, tSkillCounts, gCycleSkills, statWeights) = simulate(
     model,
     strength,
     criticalHitRate,
@@ -34,5 +34,5 @@ random = False
     variation,
     nbSim,
     runStatWeights,
-    random
+    randomize
 )
