@@ -11,6 +11,7 @@ import numpy as np
 from priorityParser import priorityParser
 from priorityManagement import formatPriorityList
 from timelineManagement import solveCurrentAction
+from priorityParser import isFloat
 
 def getInitializer(
     strength, 
@@ -165,6 +166,12 @@ def showGraphs(gTimeline, gDPS, tSkill) :
     pl.xticks([ i + 0.5 for i in range(len(tSkill[0])) ], tSkill[0], rotation=90)
     pl.show()
 
+def printTable(table, titles) :
+    row_format = ''.join( '{:>' + str(max([len(titles[i])] + [ len('{:.3f}'.format(float(t))) if isFloat(t) else len(t) for t in table[i] ]) + 1) + '}' for i in range(len(titles)) )
+    print row_format.format(*titles)
+    for i in range(len(table[0])):
+        print row_format.format(*[ '{:.3f}'.format(float(t[i])) if isFloat(t[i]) else t[i] for t in table ])
+
 def simulate(
     model,
     strength,
@@ -199,7 +206,7 @@ def simulate(
     (states, results) = runSim(initialState, plist, duration, True)
     damageLimit = sum( r['damage'] for r in results if 'damage' in r )
     
-    # Initial state
+    titles = ['skill', 'ticks', 'totDmg', 'totPot', '%age', 'partialDPS', 'partialPot', 'dmg/tick', 'pot/tick']
     if randomize:
         avgDPS = []
         avgTPSPS = []
@@ -234,6 +241,7 @@ def simulate(
         for i in range(1, len(avgTSkill)) :
             for j in range(len(avgTSkill[i])) :
                 avgTSkill[i][j] = np.mean([ float(ts[i][j]) for ts in tSkill ])
+        printTable(avgTSkill, titles) 
         return (states, results, np.mean(avgDPS), np.mean(avgTPSPS), avgTSkill, gCycleSkills, statWeights)
     else:
         initialState = initializer(autoAttack, dotTick)
@@ -243,6 +251,12 @@ def simulate(
         if runStatWeights:
             statWeights = getStatsWeights(initialState, priorityList, damageLimit, avgDPS)
         showGraphs(gTimeline, gDPS, tSkill)
+        printTable(tSkill, titles) 
+        print 'average DPS: ', avgDPS
+        print 'average TP spent per second', avgTPSPS
+        print 'First 50 actions:'
+        for i in range(50):
+            print gCycleSkills[i]
         return (states, results, avgDPS, avgTPSPS, tSkill, gCycleSkills, statWeights)
 
 
