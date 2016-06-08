@@ -71,29 +71,30 @@ unoptimized = True
 while unoptimized :
     unoptimized = False
     for i in range(len(priorityList) - 1):
-        # for j in range(i + 1, len(priorityList)):
-        j = i+1
-        newPriorityList = copy.deepcopy(priorityList)
-        newPriorityList[i], newPriorityList[j] = newPriorityList[j], newPriorityList[i]
-        plist = formatPriorityList(newPriorityList)
-        
-        states = [state]
-        results = []
-        nextState = copy.deepcopy(state)
-        prepullEnd = 0
-        while nextState['timeline']['timestamp'] <= maxTime + prepullEnd:
-            (nextState, nextResult) = solveCurrentAction(nextState, plist)
-            prepullEnd = max(nextState['timeline']['prepullTimestamp'].values())
-            states = states + [nextState]
-            results = results + [nextResult]
-        # [ r['source'] for r in results if 'source' in r and r['type'] == 'skill' ]
-        # sum( r['potency'] for r in results if 'potency' in r ) / maxTime
-        newDPS = sum( r['damage'] for r in results if 'damage' in r ) / maxTime
-        print newDPS
-        if newDPS > refDPS * 1.0001:
-            unoptimized = True
-            bestPerm = (i, j)
-            refDPS = newDPS
+        for j in range(i + 1, len(priorityList)):
+#        j = i+1
+            newPriorityList = copy.deepcopy(priorityList)
+            newPriorityList[i], newPriorityList[j] = newPriorityList[j], newPriorityList[i]
+            plist = formatPriorityList(newPriorityList)
+            
+            states = [state]
+            results = []
+            nextState = copy.deepcopy(state)
+            prepullEnd = 0
+            while nextState['timeline']['timestamp'] <= maxTime + prepullEnd:
+                (nextState, nextResult) = solveCurrentAction(nextState, plist)
+                prepullEnd = max(nextState['timeline']['prepullTimestamp'].values())
+                states = states + [nextState]
+                results = results + [nextResult]
+            # [ r['source'] for r in results if 'source' in r and r['type'] == 'skill' ]
+            # sum( r['potency'] for r in results if 'potency' in r ) / maxTime
+            newDPS = sum( r['damage'] for r in results if 'damage' in r ) / maxTime
+            print newDPS
+            if newDPS > refDPS * 1.0001:
+                unoptimized = True
+                bestPerm = (i, j)
+                refDPS = newDPS
+        #
     if unoptimized :
         priorityList[bestPerm[0]], priorityList[bestPerm[1]] = priorityList[bestPerm[1]], priorityList[bestPerm[0]]
 

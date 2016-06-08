@@ -61,6 +61,7 @@ def applySkill(state, skill) :
             newState = addAction(newState, TIME_EPSILON, { 'type': 'gcdSkill' })
         newState = nextAction(newState)
         return (newState, {})
+    newState = specialAction(newState, skill)
     if 'skillBuff' in skill :
         for bufName in skill['skillBuff'] :
             newState = applyBuff(newState, b()[bufName])
@@ -127,6 +128,43 @@ def applySkill(state, skill) :
             newState = addAction(newState, skill['animationLock'] + TIME_EPSILON, { 'type': 'gcdSkill' })
     newState = nextAction(newState)
     return (newState, result)
+    
+def specialAction(state, skill) :
+    newState = copy.deepcopy(state)
+    if 'special' not in skill :
+        return newState
+    if skill['special'] == 'removeForms' :
+        newState = addAction(newState, b()[skill['addBuff'][0]]['duration'], { 'type': 'special', 'name': skill['special'] })
+    elif skill['special'] == 'nextForm' :
+        forms = [ 'opoOpoForm', 'raptorForm', 'coerlForm' ]
+        if forms[0] in [ pb[0]['name'] for pb in newState['player']['buff'] ] :
+            newState = removeBuff(newState, forms)
+            newState = applyBuff(newState, b()[forms[1]])
+        elif forms[1] in [ pb[0]['name'] for pb in newState['player']['buff'] ] :
+            newState = removeBuff(newState, forms)
+            newState = applyBuff(newState, b()[forms[2]])
+        elif forms[2] in [ pb[0]['name'] for pb in newState['player']['buff'] ] :
+            newState = removeBuff(newState, forms)
+            newState = applyBuff(newState, b()[forms[0]])
+        else :
+            newState = applyBuff(newState, b()[forms[0]])
+    elif skill['special'] == 'bootshineCrit' :
+        if 'opoOpoForm' in [ pb[0]['name'] for pb in newState['player']['buff'] ] or 'perfectBalance' in [ pb[0]['name'] for pb in newState['player']['buff'] ] :
+            newState = applyBuff(newState, b()[skill['special']])
+    elif skill['special'] == 'dragonKick' :
+        if 'opoOpoForm' in [ pb[0]['name'] for pb in newState['player']['buff'] ] or 'perfectBalance' in [ pb[0]['name'] for pb in newState['player']['buff'] ] :
+            newState = addAction(newState, 0, { 'type': 'special', 'name': skill['special'] })
+    return newState
+
+def applySpecialAction(state, name) :
+    newState = copy.deepcopy(state)
+    if name == 'removeForms' :
+        forms = [ 'opoOpoForm', 'raptorForm', 'coerlForm' ]
+        newState = removeBuff(newState, forms)
+    elif name == 'dragonKick' :
+        newState = applyDebuff(newState, d()[name])
+    newState = nextAction(newState)
+    return (newState, {})
 
 def applySingleDot(state, dot) :
     pot = dot['props']['potency']

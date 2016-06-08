@@ -21,9 +21,9 @@ def s():
         'potency': 150,
         'animationLock': 0.75,
         'type': 'blunt',
-        'skillBuff': ['bootshineCrit'],
         'removeBuff': ['opoOpoForm'],
         'addBuff': ['raptorForm'],
+        'special': 'bootshineCrit',
     }
     s['pugilist']['trueStrike'] = {
         'name': 'trueStrike',
@@ -149,6 +149,7 @@ def s():
         'castTime': 0,
         'animationLock': 0.75,
         'addBuff': ['perfectBalance'],
+        'special': 'removeForms',
     }
     
     # Monk
@@ -188,10 +189,19 @@ def s():
         'potency': 150,
         'animationLock': 0.75,
         'type': 'blunt',
-        'requiredBuff': ['opoOpoForm', 'perfectBalance'],
         'removeBuff': ['opoOpoForm'],
         'addBuff': ['raptorForm'],
-        'addDebuff': ['dragonKick'],
+        'special': 'dragonKick',
+    }
+    s['monk']['formShift'] = {
+        'name': 'formShift',
+        'level': 52,
+        'tpCost': 0,
+        'gcdType': 'global',
+        'cooldown': 0,
+        'castTime': 0,
+        'animationLock': 0.75,
+        'special': 'nextForm'
     }
     s['monk']['meditation'] = {
         'name': 'meditation',

@@ -8,7 +8,8 @@ from priorityManagement import reduceConditions
 from skills import s
 from stateManagement import \
     nextAction, removeBuff, removeDebuff, removeCooldown
-from applyActions import  applyDot, applySingleDot, applySkill, applyAutoAttack
+from applyActions import \
+    applyDot, applySingleDot, applySkill, applyAutoAttack, applySpecialAction
 
 def findBestSkill(state, priorityList) :
     skill = None
@@ -44,4 +45,6 @@ def solveCurrentAction(state, priorityList) :
         (newState, result) = applySkill(state, bestSkill)
     elif actionType == 'autoAttack' :
         (newState, result) = applyAutoAttack(state)
+    elif actionType == 'special' :
+        (newState, result) = applySpecialAction(state, state['timeline']['currentAction']['name'])
     return (newState, result)
