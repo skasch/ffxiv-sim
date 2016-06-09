@@ -13,8 +13,8 @@ pugilist.howlingFist if buffPresent.internalRelease is True
 pugilist.demolish if debuffTimeLeft.demolish <= 4.5
 pugilist.twinSnakes if buffTimeLeft.twinSnakes <= 4.5
 pugilist.touchOfDeath if (debuffTimeLeft.touchOfDeath <= 1.5 and debuffPresent.dragonKick is True and buffPresent.twinSnakes is True)
+monk.dragonKick if (debuffTimeLeft.dragonKick <= 4.5 and (buffPresent.opoOpoForm is True or buffPresent.perfectBalance is True) and buffAtMaxStacks.greasedLightning is True)
 pugilist.snapPunch
 marauder.fracture if (debuffTimeLeft.fracture <= 1.5 and debuffPresent.dragonKick is True and buffPresent.twinSnakes is True)
-monk.dragonKick if (debuffTimeLeft.dragonKick <= 4.5 and (buffPresent.opoOpoForm is True or buffPresent.perfectBalance is True))
 pugilist.trueStrike
 pugilist.bootshine

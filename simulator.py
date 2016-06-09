@@ -241,7 +241,12 @@ def simulate(
         for i in range(1, len(avgTSkill)) :
             for j in range(len(avgTSkill[i])) :
                 avgTSkill[i][j] = np.mean([ float(ts[i][j]) for ts in tSkill ])
+        print 'First 50 actions:'
+        for i in range(50):
+            print gCycleSkills[i]
         printTable(avgTSkill, titles) 
+        print 'average DPS: ', np.mean(avgDPS)
+        print 'average TP spent per second',  np.mean(avgTPSPS)
         return (states, results, np.mean(avgDPS), np.mean(avgTPSPS), avgTSkill, gCycleSkills, statWeights)
     else:
         initialState = initializer(autoAttack, dotTick)
@@ -251,12 +256,12 @@ def simulate(
         if runStatWeights:
             statWeights = getStatsWeights(initialState, priorityList, damageLimit, avgDPS)
         showGraphs(gTimeline, gDPS, tSkill)
-        printTable(tSkill, titles) 
-        print 'average DPS: ', avgDPS
-        print 'average TP spent per second', avgTPSPS
         print 'First 50 actions:'
         for i in range(50):
             print gCycleSkills[i]
+        printTable(tSkill, titles) 
+        print 'average DPS: ', avgDPS
+        print 'average TP spent per second', avgTPSPS
         return (states, results, avgDPS, avgTPSPS, tSkill, gCycleSkills, statWeights)
 
 
