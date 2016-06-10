@@ -10,6 +10,9 @@ from skills import s
 from buffs import b
 
 def operatorToFunction(operator) :
+    """Transform a priority list operator as a string to the matching 
+    comparison function for conditions
+    """
     if operator == 'is':
         return lambda x, y: x == y
     elif operator == '>=':
@@ -28,18 +31,33 @@ def operatorToFunction(operator) :
         return lambda x, y: x or y
 
 def formatPriorityList(priorityList) :
+    """Format a priority list to add hidden conditions for each skill
+    See addHiddenConditions for more details
+    """
     return [ addHiddenConditions(pe) for pe in priorityList ]
     
 def addHiddenConditions(priorityElement) :
+    """Add hidden conditions for a priority element
+    * Add a condition on GCD type (global vs instant) to use the correct skills
+      for a given action
+    * Check for required buffs if skill require a given buff to be castable
+    * Check if skill is on cooldown if skill has a cooldown
+    * Prevent instant skills from delaying the GCD
+    * Add additional conditions present in skill description
+    """
+    # Get the skill matching the priority element
     skill = s()[priorityElement['group']][priorityElement['name']]
     newPriorityElement = copy.deepcopy(priorityElement)
+    # Add GCD type check to condition
     if 'condition' not in newPriorityElement :
+        # Add a condition key if absent
         newPriorityElement['condition'] = {
             'type': 'gcdType',
             'comparison': 'is',
             'value': skill['gcdType']
         }
     else :
+        # Add the GCD type check to the existing condition if it already exists
         newPriorityElement['condition'] = {
             'logic': 'and',
             'list': [
@@ -51,9 +69,15 @@ def addHiddenConditions(priorityElement) :
                 },
             ],
         }
+    # Add required buff condition; required buffs are on 'or', so it will match
+    # if any of the requiredBuff property of skill is present
+    # Also, if the buff has stacks, it will by default check if the buff is
+    # at max stacks rather than just present
     if 'requiredBuff' in skill :
         reqBufList = []
+        # Loop on required buffs
         for bufName in skill['requiredBuff'] :
+            # Check if buffs has stacks
             if 'maxStacks' in b()[bufName] :
                 reqBufList = reqBufList + [ {
                     'type': 'buffAtMaxStacks', 
@@ -78,6 +102,7 @@ def addHiddenConditions(priorityElement) :
                 },
             ],
         }
+    # Add a condition to check if skill is on cooldown if it has one
     if skill['cooldown'] > 0:
         newPriorityElement['condition'] = {
             'logic': 'and',
@@ -91,6 +116,7 @@ def addHiddenConditions(priorityElement) :
                 },
             ],
         }
+    # Prevent instant skills from delaying GCD by default
     if skill['gcdType'] == 'instant' and 'prepull' not in newPriorityElement:
         newPriorityElement['condition'] = {
             'logic': 'and',
@@ -104,6 +130,7 @@ def addHiddenConditions(priorityElement) :
                 },
             ],
         }
+    # Add skill specific skills if present
     if 'condition' in skill :
         newPriorityElement['condition'] = {
             'logic': 'and',
@@ -115,12 +142,31 @@ def addHiddenConditions(priorityElement) :
     return newPriorityElement
 
 def actionToGcdType(actionType) :
+    """Returns the gcdType matching a given actionType
+    """
     if actionType == 'gcdSkill':
         return 'global'
     elif actionType == 'instantSkill':
         return 'instant'
 
 def getConditionValue(state, condition) :
+    """Returns the value to check for a given single condition
+    switch on the condition type to return the matching value in the state
+    Current types are:
+    * buffPresent: True if buff is present in state else False
+    * buffAtMaxStacks: True if buff is at max stacks in state else False
+    * buffTimeLeft: time left before the buff drops in state; 0 if absent
+    * debuffPresent: True if debuff is present in state else False
+    * debuffTimeLeft: time left before the debuff drops in state; 0 if absent
+    * cooldownPresent: True if skill is on cooldown in state else False
+    * cooldownTimeLeft: time left before the skill is available again in state; 
+        0 if absent
+    * gcdType: gcdType of current skill (global/instant)
+    * gcdDelay: how much would the skill delay the next GCD if cast
+    * enemy: enemy specific values
+        * lifePercent: percent of life left on the enemy; 100% if time based 
+          simulation
+    """
     if condition['type'] == 'buffPresent':
         return condition['name'] in [ bf[0]['name'] for bf in state['player']['buff'] ]
     elif condition['type'] == 'buffAtMaxStacks':
@@ -158,10 +204,18 @@ def getConditionValue(state, condition) :
             return 100 * state['enemy']['hp'] / state['enemy']['maxHp']
 
 def testCondition(state, condition) :
+    """Test a single condition
+    Compares the value returned by getConditionalValue to the value of the
+    condition with the comparison operation chosen
+    """
     val = getConditionValue(state, condition)
     return operatorToFunction(condition['comparison'])(val, condition['value'])
 
 def reduceConditions(state, conditions) :
+    """Reduce the condition of a complex priority element condition
+    applies testCondition if condition is single, else reduce the condition 
+    list with the logic if the condition is complex (with and/or)
+    """
     if 'logic' in conditions:
         return reduce(operatorToFunction(conditions['logic']), [ reduceConditions(state, cond) for cond in conditions['list'] ])
     return testCondition(state, conditions)

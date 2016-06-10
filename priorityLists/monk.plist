@@ -13,6 +13,7 @@ monk.forbiddenChakra if buffPresent.internalRelease is True
 pugilist.steelPeak if buffAtMaxStacks.greasedLightning is True
 pugilist.howlingFist if buffPresent.internalRelease is True
 marauder.mercyStroke if buffPresent.internalRelease is True
+monk.shoulderTackle if buffAtMaxStacks.greasedLightning is True
 
 # globals
 pugilist.twinSnakes if buffTimeLeft.twinSnakes <= 4.5

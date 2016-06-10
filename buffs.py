@@ -6,6 +6,15 @@ Created on Tue May 31 16:47:05 2016
 """
 
 def b():
+    """Returns the list of buffs
+    name: name of the buff
+    duration: duration of the buff
+    buff: dict containing [key, buff] couples; possible keys:
+        damage, critChance, speed: stat modifier (0.1 = +10%)
+        strength: (ratio, max), the strength ratio and max bonus; will 
+            calculate the lowest value for a given state.
+    [maxStacks]: max stacks of the buff
+    """
     b = {}
     b['opoOpoForm'] = {
         'name': 'opoOpoForm',

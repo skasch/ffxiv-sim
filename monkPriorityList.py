@@ -5,6 +5,8 @@ Created on Tue May 31 17:02:24 2016
 @author: rmondoncancel
 """
 
+# Deprecated
+
 priorityList = [
     {
         'name': 'fistOfFire',
