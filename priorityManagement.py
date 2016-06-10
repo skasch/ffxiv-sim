@@ -104,6 +104,14 @@ def addHiddenConditions(priorityElement) :
                 },
             ],
         }
+    if 'condition' in skill :
+        newPriorityElement['condition'] = {
+            'logic': 'and',
+            'list': [
+                newPriorityElement['condition'],
+                skill['condition'],            
+            ]
+        }
     return newPriorityElement
 
 def actionToGcdType(actionType) :
@@ -143,6 +151,11 @@ def getConditionValue(state, condition) :
             return condition['delay']
         nextGcdTimestamp = min( na[0] for na in state['timeline']['nextActions'] if na[1]['type'] == 'gcdSkill' )
         return max(0, state['timeline']['timestamp'] + condition['delay'] - nextGcdTimestamp)
+    elif condition['type'] == 'enemy':
+        if condition['name'] == 'lifePercent' :
+            if 'hp' not in state['enemy'] or 'maxHp' not in state['enemy'] :
+                return 100
+            return 100 * state['enemy']['hp'] / state['enemy']['maxHp']
 
 def testCondition(state, condition) :
     val = getConditionValue(state, condition)

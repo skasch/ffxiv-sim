@@ -299,7 +299,12 @@ def s():
         'potency': 200,
         'animationLock': 0.75,
         'type': 'slashing',
-        'requiredDebuff': ['lowLife'],
+        'condition': {
+            'comparison': '<=',
+            'type': 'enemy',
+            'name': 'lifePercent',
+            'value': 20,
+        }
     }
     
     # Items

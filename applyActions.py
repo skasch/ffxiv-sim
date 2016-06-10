@@ -7,7 +7,7 @@ Created on Tue May 31 16:57:03 2016
 
 from stateManagement import \
     getBuff, applyBuff, removeBuff, applyDebuff, getResistance, addAction, \
-    nextAction
+    nextAction, applyDamage
 from dpsCalculation import \
     baseDamage, basePotency, critChance, critBonus, gcdTick, dotTick
 from priorityManagement import actionToGcdType
@@ -46,6 +46,7 @@ def applyAutoAttack(state) :
         'type': 'autoAttack',
         'timestamp': newState['timeline']['timestamp'],
     }
+    newState = applyDamage(newState, effDmg)
     autoAttackDelay = newState['player']['baseStats']['weaponDelay']
     newState = addAction(newState, autoAttackDelay, { 'type': 'autoAttack' })
     newState = nextAction(newState)
@@ -92,6 +93,7 @@ def applySkill(state, skill) :
             'timestamp': newState['timeline']['timestamp'],
             'tpSpent': skill['tpCost'],
         }
+        newState = applyDamage(newState, effDmg)
     else :
         result = {
             'source': skill['name'],
@@ -191,7 +193,8 @@ def applySingleDot(state, dot) :
         'type': 'DoT',
         'timestamp': state['timeline']['timestamp'],
     }
-    newState = nextAction(state)
+    newState = applyDamage(state, crtDmg)
+    newState = nextAction(newState)
     return (newState, result)
 
 def applyDot(state) :

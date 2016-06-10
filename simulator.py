@@ -22,7 +22,7 @@ def getInitializer(
     weaponDelay, 
     weaponType,
 ) :
-    return lambda autoAttack, dotTick : initializeState(
+    return lambda autoAttack, dotTick, hp = None : initializeState(
         strength,
         criticalHitRate,
         determination,
@@ -32,6 +32,7 @@ def getInitializer(
         weaponType,
         autoAttack,
         dotTick,
+        hp,
     )
 
 def initializeState(
@@ -44,6 +45,7 @@ def initializeState(
     weaponType,
     autoAttack,
     dotTick,
+    hp = None,
 ) :
     state = {}
     state['player'] = {
@@ -66,6 +68,10 @@ def initializeState(
         'prepullTimestamp': { 'global': 0, 'instant': 0 },
         'nextActions': [ (autoAttack, { 'type': 'autoAttack' }), (dotTick, { 'type': 'dotTick' }) ],
     }
+    
+    if hp is not None:
+        state['enemy']['hp'] = hp
+        state['enemy']['maxHp'] = hp
     
     # Player stats
     state['player']['baseStats'] = {
@@ -94,21 +100,20 @@ def getStatsWeights(initialState, priorityList, damageLimit, avgDPS) :
         statWeights[cStat] = statWeights[cStat] / strWeight 
     return statWeights
 
-def simContinue(state, totDamage, timeLimit, damageLimit, timeBased) :
-    if timeBased :
+def simContinue(state, totDamage, timeLimit = None) :
+    if timeLimit is not None :
         return state['timeline']['timestamp'] <= timeLimit
     else :
-        return totDamage <= damageLimit
+        return state['enemy']['hp'] > 0
      
-def runSim(initialState, priorityList, limit, timeBased = False) :
+def runSim(initialState, priorityList, duration = None) :
     states = [initialState]
     results = []
     nextState = copy.deepcopy(initialState)
-    maxTime = limit * 60
     prepullEnd = 0
     totDamage = 0
     isPrepull = True
-    while simContinue(nextState, totDamage, maxTime + prepullEnd, limit, timeBased) :
+    while simContinue(nextState, totDamage, duration * 60 + prepullEnd if duration is not None else None) :
         (nextState, nextResult) = solveCurrentAction(nextState, priorityList)
         if 'damage' not in nextResult and isPrepull :
             prepullEnd = nextState['timeline']['timestamp']
@@ -152,13 +157,19 @@ def simulationAnalysis(states, results, gDeltaT) :
     gAvgDmgAttacks = np.array([ d / c for (c, d) in zip(gCountAttacks, gDamageAttacks) ])
     gAvgPotAttacks = np.array([ d / c for (c, d) in zip(gCountAttacks, gPotencyAttacks) ])
     
-    gDmgOrder = [ i[0] for i in sorted(enumerate(gDamageAttacks), key = lambda x: x[1], reverse = True) ]
-    tSkill = np.array([ gDmgSourceNames[gDmgOrder], gCountAttacks[gDmgOrder], gDamageAttacks[gDmgOrder], gPotencyAttacks[gDmgOrder], gDamagePctAttacks[gDmgOrder], gDPSAttacks[gDmgOrder], gPPSAttacks[gDmgOrder], gAvgDmgAttacks[gDmgOrder], gAvgPotAttacks[gDmgOrder] ])
+    gNameOrder = [ i[0] for i in sorted(enumerate(gDmgSourceNames), key = lambda x: x[1]) ]
+    tSkill = np.array([ gDmgSourceNames[gNameOrder], gCountAttacks[gNameOrder], gDamageAttacks[gNameOrder], gPotencyAttacks[gNameOrder], gDamagePctAttacks[gNameOrder], gDPSAttacks[gNameOrder], gPPSAttacks[gNameOrder], gAvgDmgAttacks[gNameOrder], gAvgPotAttacks[gNameOrder] ])
     gCycleSkills = np.array([ r['source'] for r in results if 'source' in r and r['type'] == 'skill' ])
     
     return (avgDPS, avgTPSPS, tSkill, gCycleSkills, gTimeline, gDPS)
 
-def showGraphs(gTimeline, gDPS, tSkill) :        
+def sortTable(tSkill):
+    gDmgOrder = [ i[0] for i in sorted(enumerate([ float(t) for t in tSkill[2] ]), key = lambda x: x[1], reverse = True) ]
+    for i in range(len(tSkill)):
+        tSkill[i] = tSkill[i][gDmgOrder]
+    return tSkill
+
+def showGraphs(gTimeline, gDPS, tSkill) :
     pl.plot(gTimeline, gDPS)
     pl.show()
     
@@ -188,10 +199,15 @@ def simulate(
     randomize = True,
     autoAttack = 0.5,
     dotTick = 1,
+    dmgLimit = None,
+    verbose = True,
     gDeltaT = 5,
 ) :
     # Priority list
-    priorityList = priorityParser(model)
+    if type(model) is str :
+        priorityList = priorityParser(model)
+    else :
+        priorityList = model
     plist = formatPriorityList(priorityList)
     initializer = getInitializer(strength,
                                  criticalHitRate,
@@ -202,9 +218,16 @@ def simulate(
                                  weaponType)
     
     # Get damage limit
-    initialState = initializer(autoAttack, dotTick)
-    (states, results) = runSim(initialState, plist, duration, True)
-    damageLimit = sum( r['damage'] for r in results if 'damage' in r )
+    if not isFloat(dmgLimit) :
+        initialState = initializer(autoAttack, dotTick)
+        (states, results) = runSim(initialState, plist, duration)
+        damageLimit = sum( r['damage'] for r in results if 'damage' in r )
+    
+        if dmgLimit == 'get':
+            (avgDPS, avgTPSPS, tSkill, gCycleSkills, gTimeline, gDPS) = simulationAnalysis(states, results, gDeltaT)
+            return damageLimit
+    else :
+        damageLimit = dmgLimit
     
     titles = ['skill', 'ticks', 'totDmg', 'totPot', '%age', 'partialDPS', 'partialPot', 'dmg/tick', 'pot/tick']
     if randomize:
@@ -216,9 +239,9 @@ def simulate(
         for i in range(nbSim):
             autoAttack = random.uniform(0, weaponDelay)
             dotTick = random.uniform(0, 3)
-            initialState = initializer(autoAttack, dotTick)
             randDmgLimit = random.uniform(damageLimit * (1 - variation), damageLimit * (1 + variation))
-            (locStates, locResults) = runSim(initialState, plist, randDmgLimit)
+            initialState = initializer(autoAttack, dotTick, randDmgLimit)
+            (locStates, locResults) = runSim(initialState, plist)
             (locAvgDPS, locAvgTPSPS, locTSkill, locGCycleSkills, locGTimeline, locGDPS) = simulationAnalysis(locStates, locResults, gDeltaT)
             avgDPS = avgDPS + [locAvgDPS]
             avgTPSPS = avgTPSPS + [locAvgTPSPS]
@@ -234,34 +257,39 @@ def simulate(
             if runStatWeights:
                 locStatWeights = getStatsWeights(initialState, priorityList, damageLimit, avgDPS)
             statWeights = statWeights + [locStatWeights]
-        showGraphs(gTimeline, gDPS, sTSkill)
-        pl.hist(avgDPS, bins = 20)
-        pl.show()
         avgTSkill = sTSkill
         for i in range(1, len(avgTSkill)) :
             for j in range(len(avgTSkill[i])) :
                 avgTSkill[i][j] = np.mean([ float(ts[i][j]) for ts in tSkill ])
-        print 'First 50 actions:'
-        for i in range(50):
-            print gCycleSkills[i]
-        printTable(avgTSkill, titles) 
-        print 'average DPS: ', np.mean(avgDPS)
-        print 'average TP spent per second',  np.mean(avgTPSPS)
+        sTSkill = sortTable(sTSkill)
+        avgTSkill = sortTable(avgTSkill)
+        if verbose:
+            showGraphs(gTimeline, gDPS, sTSkill)
+            pl.hist(avgDPS, bins = 20)
+            pl.show()
+            print 'First 50 actions:'
+            for i in range(50):
+                print gCycleSkills[i]
+            printTable(avgTSkill, titles) 
+            print 'average DPS: ', np.mean(avgDPS)
+            print 'average TP spent per second',  np.mean(avgTPSPS)
         return (states, results, np.mean(avgDPS), np.mean(avgTPSPS), avgTSkill, gCycleSkills, statWeights)
     else:
-        initialState = initializer(autoAttack, dotTick)
-        (states, results) = runSim(initialState, plist, damageLimit)
+        initialState = initializer(autoAttack, dotTick, damageLimit)
+        (states, results) = runSim(initialState, plist)
         (avgDPS, avgTPSPS, tSkill, gCycleSkills, gTimeline, gDPS) = simulationAnalysis(states, results, gDeltaT)
         statWeights = {}
         if runStatWeights:
             statWeights = getStatsWeights(initialState, priorityList, damageLimit, avgDPS)
-        showGraphs(gTimeline, gDPS, tSkill)
-        print 'First 50 actions:'
-        for i in range(50):
-            print gCycleSkills[i]
-        printTable(tSkill, titles) 
-        print 'average DPS: ', avgDPS
-        print 'average TP spent per second', avgTPSPS
+        tSkill = sortTable(tSkill)
+        if verbose:
+            showGraphs(gTimeline, gDPS, tSkill)
+            print 'First 50 actions:'
+            for i in range(50):
+                print gCycleSkills[i]
+            printTable(tSkill, titles) 
+            print 'average DPS: ', avgDPS
+            print 'average TP spent per second', avgTPSPS
         return (states, results, avgDPS, avgTPSPS, tSkill, gCycleSkills, statWeights)
 
 

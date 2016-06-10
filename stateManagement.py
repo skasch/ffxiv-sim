@@ -28,6 +28,13 @@ def addAction(state, timeDifference, newAction) :
         lambda x, y: sign(x[0] - y[0])
     )
     return newState
+
+def applyDamage(state, damage) :
+    newState = copy.deepcopy(state)
+    if 'hp' not in state['enemy'] :
+        return newState
+    newState['enemy']['hp'] = newState['enemy']['hp'] - damage
+    return newState
     
 def getBuff(state, buffType) :
     return [ b[0]['buff'][buffType] * b[1] for b in state['player']['buff'] if buffType in b[0]['buff'] ]

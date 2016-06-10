@@ -13,6 +13,8 @@ def isFloat(value) :
         return True
     except ValueError :
         return False
+    except TypeError :
+        return False
 
 def parseValue(value) :
     if value == 'True':

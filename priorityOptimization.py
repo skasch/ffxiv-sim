@@ -6,66 +6,62 @@ Created on Fri Jun 03 10:03:13 2016
 """
 
 import copy
-import matplotlib.pyplot as pl
-import numpy as np
+from simulator import simulate
 from priorityParser import priorityParser, priorityDeparser
-from priorityManagement import formatPriorityList
-from timelineManagement import solveCurrentAction
 
 model = 'monk'
+strength = 1306
+criticalHitRate = 814
+determination = 523
+skillSpeed = 741
+weaponDamage = 81
+weaponDelay = 2.56
+weaponType = 'blunt'
+duration = 8
+variation = 0
+nbSim = 1
+runStatWeights = False
+randomize = False
+
 priorityList = priorityParser(model)
 
-# Initialize State
-state = {}
-state['player'] = {
-    'buff': [],
-    'baseStats': {},
-    'cooldown': [],
-}
-state['enemy'] = {
-    'debuff': [],
-    'resistance': {
-        'slashing': 1,
-        'piercing': 1,
-        'blunt': 1,
-    }
-}
-state['timeline'] = {
-    'timestamp': 0,
-    'currentAction': { 'type': 'gcdSkill' },
-    'prepull': { 'global': True, 'instant': True },
-    'prepullTimestamp': { 'global': 0, 'instant': 0 },
-    'nextActions': [ (0.5, { 'type': 'autoAttack' }), (1, { 'type': 'dotTick' }) ],
-}
+dmgLimit = simulate(
+    priorityList,
+    strength,
+    criticalHitRate,
+    determination,
+    skillSpeed,
+    weaponDamage,
+    weaponDelay,
+    weaponType,
+    duration,
+    variation,
+    nbSim,
+    runStatWeights,
+    randomize,
+    dmgLimit = 'get',
+    verbose = False
+)
 
-# Player stats
-state['player']['baseStats'] = {
-    'strength': 1306,
-    'criticalHitRate': 814,
-    'determination': 523,
-    'attackPower': 484,
-    'skillSpeed': 741,
-    'weaponDamage': 81,
-    'weaponDelay': 2.56,
-    'weaponType': 'blunt',
-}
+(_, _, refDPS, _, _, _, _) = simulate(
+    priorityList,
+    strength,
+    criticalHitRate,
+    determination,
+    skillSpeed,
+    weaponDamage,
+    weaponDelay,
+    weaponType,
+    duration,
+    variation,
+    nbSim,
+    runStatWeights,
+    randomize,
+    dmgLimit = dmgLimit,
+    verbose = False
+)
 
-plist = formatPriorityList(priorityList)
-
-states = [state]
-results = []
-nextState = copy.deepcopy(state)
-maxTime = 8 * 60
-prepullEnd = 0
-while nextState['timeline']['timestamp'] <= maxTime + prepullEnd:
-    (nextState, nextResult) = solveCurrentAction(nextState, plist)
-    prepullEnd = max(nextState['timeline']['prepullTimestamp'].values())
-    states = states + [nextState]
-    results = results + [nextResult]
-# [ r['source'] for r in results if 'source' in r and r['type'] == 'skill' ]
-# sum( r['potency'] for r in results if 'potency' in r ) / maxTime
-refDPS = sum( r['damage'] for r in results if 'damage' in r ) / maxTime
-print refDPS
+print 'Reference DPS: ', refDPS
 
 unoptimized = True
 while unoptimized :
@@ -75,20 +71,23 @@ while unoptimized :
 #        j = i+1
             newPriorityList = copy.deepcopy(priorityList)
             newPriorityList[i], newPriorityList[j] = newPriorityList[j], newPriorityList[i]
-            plist = formatPriorityList(newPriorityList)
-            
-            states = [state]
-            results = []
-            nextState = copy.deepcopy(state)
-            prepullEnd = 0
-            while nextState['timeline']['timestamp'] <= maxTime + prepullEnd:
-                (nextState, nextResult) = solveCurrentAction(nextState, plist)
-                prepullEnd = max(nextState['timeline']['prepullTimestamp'].values())
-                states = states + [nextState]
-                results = results + [nextResult]
-            # [ r['source'] for r in results if 'source' in r and r['type'] == 'skill' ]
-            # sum( r['potency'] for r in results if 'potency' in r ) / maxTime
-            newDPS = sum( r['damage'] for r in results if 'damage' in r ) / maxTime
+            (_, _, newDPS, _, _, _, _) = simulate(
+                newPriorityList,
+                strength,
+                criticalHitRate,
+                determination,
+                skillSpeed,
+                weaponDamage,
+                weaponDelay,
+                weaponType,
+                duration,
+                variation,
+                nbSim,
+                runStatWeights,
+                randomize,
+                dmgLimit = dmgLimit,
+                verbose = False
+            )
             print newDPS
             if newDPS > refDPS * 1.0001:
                 unoptimized = True
@@ -96,6 +95,7 @@ while unoptimized :
                 refDPS = newDPS
         #
     if unoptimized :
+        print 'Reference DPS: ', refDPS
         priorityList[bestPerm[0]], priorityList[bestPerm[1]] = priorityList[bestPerm[1]], priorityList[bestPerm[0]]
 
 print priorityDeparser(priorityList)
