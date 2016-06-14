@@ -6,6 +6,14 @@ Created on Tue May 31 16:47:37 2016
 """
 
 def d():
+    """Returns the list of debuffs
+    name: name of the debuff
+    duration: duration of the debuff
+    type: DoT or debuff, if it's a DoT or a stat debuff
+    props: dict containing [key, buff] couples; possible keys:
+        potency: potency of each tick if a DoT
+        blunt, slashing, piercing: modifier for resistances
+    """
     d = {}
     d['touchOfDeath'] = {
         'name': 'touchOfDeath',
@@ -38,9 +46,5 @@ def d():
         'props': {
             'potency': 20,
         },
-    }
-    d['lowLife'] = {
-        'name': 'lowLife',
-        'type': 'debuff',
     }
     return d

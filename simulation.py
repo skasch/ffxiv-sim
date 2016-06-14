@@ -19,7 +19,7 @@ from simulator import simulate
 #weaponType = 'blunt'
 #duration = 5
 #variation = 0.2
-#nbSim = 10
+#nbSim = 20
 #runStatWeights = False
 #randomize = True
 

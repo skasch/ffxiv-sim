@@ -9,6 +9,7 @@ import copy
 import math
 import matplotlib.pyplot as pl
 import numpy as np
+from stateManagement import addAction
 from priorityParser import priorityParser
 from priorityManagement import formatPriorityList
 from timelineManagement import solveCurrentAction
@@ -99,8 +100,10 @@ def initializeState(
         'currentAction': { 'type': 'gcdSkill' },
         'prepull': { 'global': True, 'instant': True },
         'prepullTimestamp': { 'global': 0, 'instant': 0 },
-        'nextActions': [ (autoAttack, { 'type': 'autoAttack' }), (dotTick, { 'type': 'dotTick' }) ],
+        'nextActions': [],
     }
+    state = addAction(state, autoAttack, { 'type': 'autoAttack' })
+    state = addAction(state, dotTick, { 'type': 'dotTick' })
     
     # Add hp and maxHp parameters to the enemy if HP based simulation
     if hp is not None:
@@ -352,35 +355,49 @@ def simulate(
                                  weaponDelay,
                                  weaponType)
     
-    # Get damage limit
+    # Get damage limit if not already specified
     if not isFloat(dmgLimit) :
         initialState = initializer(autoAttack, dotTick)
         (states, results) = runSim(initialState, plist, duration)
         damageLimit = sum( r['damage'] for r in results if 'damage' in r )
-    
+        
+        # Returns the damage limit if simulation is to get the damage limit for
+        # other simulations
         if dmgLimit == 'get':
             (avgDPS, avgTPSPS, tSkill, gCycleSkills, gTimeline, gDPS) = simulationAnalysis(states, results, gDeltaT)
             return damageLimit
+    # Else use the provided damage limit
     else :
         damageLimit = dmgLimit
     
+    # Titles for the skill table (cf printTable and simulationAnalysis)
     titles = ['skill', 'ticks', 'totDmg', 'totPot', '%age', 'partialDPS', 'partialPot', 'dmg/tick', 'pot/tick', 'dmg/hit', 'pot/hit', 'dmg/crit', 'pot/crit', 'crit%', 'crit bonus' ]
+    # If simulation is randomized
     if randomize:
+        # Create arrays for results of each simulation
         avgDPS = []
         avgTPSPS = []
         tSkill = []
         statWeights = []
+        # Index of the sample for single simulation results:
+        # skill list in order, graphs and states/results
         sampleIndex = random.choice(range(nbSim))
         for i in range(nbSim):
+            # Randomize first auto-attack timestamp, first DoT tick timestamp
+            # and damage limit within +/- variation
             autoAttack = random.uniform(0, weaponDelay)
             dotTick = random.uniform(0, 3)
             randDmgLimit = random.uniform(damageLimit * (1 - variation), damageLimit * (1 + variation))
+            # Run simulation
             initialState = initializer(autoAttack, dotTick, randDmgLimit)
             (locStates, locResults) = runSim(initialState, plist)
+            # Retrieve numeric analysis of the results
             (locAvgDPS, locAvgTPSPS, locTSkill, locGCycleSkills, locGTimeline, locGDPS) = simulationAnalysis(locStates, locResults, gDeltaT)
+            # Update arrays of results
             avgDPS = avgDPS + [locAvgDPS]
             avgTPSPS = avgTPSPS + [locAvgTPSPS]
             tSkill = tSkill + [locTSkill]
+            # Fill single simulation sample if chosen index
             if i == sampleIndex:
                 states = locStates
                 results = locResults
@@ -388,43 +405,65 @@ def simulate(
                 gTimeline = locGTimeline
                 gDPS = locGDPS
                 sTSkill = locTSkill
+            # TODO ############################################################
+            # stat weights for each simulation if asked for it
             locStatWeights = {}
             if runStatWeights:
                 locStatWeights = getStatsWeights(initialState, priorityList, damageLimit, avgDPS)
             statWeights = statWeights + [locStatWeights]
+        # Averages results of skill table through the different simulations
         avgTSkill = sTSkill
         for i in range(1, len(avgTSkill)) :
             for j in range(len(avgTSkill[i])) :
                 avgTSkill[i][j] = np.mean([ float(ts[i][j]) for ts in tSkill ])
+        # Sorts average table and example table
         sTSkill = sortTable(sTSkill)
         avgTSkill = sortTable(avgTSkill)
         if verbose:
+            # Displays graphs of results for the single simulation example:
+            # DPS over time and DPS distribution across skills
             showGraphs(gTimeline, gDPS, sTSkill)
+            # Shows DPS distribution across simulations
             pl.hist(avgDPS, bins = 20)
             pl.show()
+            # Shows the first 50 actions of the character for the example
             print 'First 50 actions:'
             for i in range(50):
                 print gCycleSkills[i]
+            # Pretty prints the table of skills averaged across simulations
             printTable(avgTSkill, titles) 
+            # Average DPS and TPSPS averaged across simulations
             print 'average DPS: ', np.mean(avgDPS)
             print 'average TP spent per second',  np.mean(avgTPSPS)
+        # Returns all elements necessary for further analyses
         return (states, results, np.mean(avgDPS), np.mean(avgTPSPS), avgTSkill, gCycleSkills, statWeights)
+    # If not randomized
     else:
+        #Runs simulation
         initialState = initializer(autoAttack, dotTick, damageLimit)
         (states, results) = runSim(initialState, plist)
+        # Gets numeric analysis of the results
         (avgDPS, avgTPSPS, tSkill, gCycleSkills, gTimeline, gDPS) = simulationAnalysis(states, results, gDeltaT)
+        # Gets the stat weights if asked for it
         statWeights = {}
         if runStatWeights:
             statWeights = getStatsWeights(initialState, priorityList, damageLimit, avgDPS)
+        # Sorts the skill table
         tSkill = sortTable(tSkill)
         if verbose:
+            # Displays graphs of results for the simulation:
+            # DPS over time and DPS distribution across skills
             showGraphs(gTimeline, gDPS, tSkill)
+            # Shows the first 50 actions of the character
             print 'First 50 actions:'
             for i in range(50):
                 print gCycleSkills[i]
+            # Pretty prints the table of skills
             printTable(tSkill, titles) 
+            # Average DPS and TPSPS
             print 'average DPS: ', avgDPS
             print 'average TP spent per second', avgTPSPS
+        # Returns all elements necessary for further analyses
         return (states, results, avgDPS, avgTPSPS, tSkill, gCycleSkills, statWeights)
 
 

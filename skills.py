@@ -6,6 +6,31 @@ Created on Tue May 31 16:23:07 2016
 """
 
 def s():
+    """Returns the list of skills
+    name: name of the buff
+    level: level necessary to unlock the skill
+    tpCost: TP cost of the skill
+    gcdType: global or instant, if the skill is on GCD or not
+    cooldown: cooldown duration for the skill
+    castTime: cast time of the skill; not implemented yet
+    animationLock: animation lock of the skill, duration when using another 
+        skill is impossible
+    [range]: skill range of the skill; useless so far
+    [radius]: radius of the skill; useless so far
+    [potency]: base potency of the skill
+    [type]: type of the attack [blunt/slashing/piercing]
+    [gcdModifier]: ratio of next GCD duration; for example, Meditation halves
+        the next GCD duration
+    [requiedBuff]: array of buffs requied to use the skill; at least one should
+        be present and at max stacks if the buff has stacks
+    [removeBuff]: array of buffs removed when the skill is used
+    [addBuff]: array of buffs added when the skill is used; when the buff has
+        stacks, adds one stack
+    [addDebuff]: array of debuffs added when the skill is used
+    [special]: special action to be resolved when the skill is used
+    [condition]: special condition to be added to the hidden conditions of the
+        skill
+    """
     s = {}
     # Pugilist
     s['pugilist'] = {}
