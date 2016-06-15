@@ -10,17 +10,18 @@ from simulator import simulate
 # Example of inputs / uncomment that and comment CLI inputs to run the 
 # simulation directly
 #model = 'monk'
-#strength = 1306
-#criticalHitRate = 814
-#determination = 523
+#strength = 1308
+#criticalHitRate = 934
+#determination = 619
 #skillSpeed = 741
 #weaponDamage = 81
 #weaponDelay = 2.56
 #weaponType = 'blunt'
 #duration = 5
 #variation = 0.2
-#nbSim = 20
+#nbSim = 50
 #runStatWeights = False
+#plotStats = []
 #randomize = True
 
 model = raw_input('Priority model: ')
@@ -50,8 +51,9 @@ randomize = raw_input('Randomize simulations [Y/N]: ').lower()[0] == 'y'
     duration,
     variation,
     nbSim,
-    runStatWeights,
-    randomize
+    runStatWeights = runStatWeights,
+    randomize = randomize,
+#    plotStats
 )
 
 

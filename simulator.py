@@ -127,7 +127,7 @@ def applyPartyBuff(stat):
     """
     return math.floor(stat * 1.03)
 
-def getStatsWeights(initialState, priorityList, damageLimit, avgDPS) :
+def getStatsWeights(initialState, priorityList, avgDPS, delta = 0.05) :
     """Computes the stats weights for a given context, with avgDPS being the
     reference DPS
     """
@@ -136,16 +136,36 @@ def getStatsWeights(initialState, priorityList, damageLimit, avgDPS) :
     for cStat in stats :
         # Create a new state with a modified base stat (+10 to base stat)
         mState = copy.deepcopy(initialState)
-        mState['player']['baseStats'][cStat] = mState['player']['baseStats'][cStat] + 10
-        (states, results) = runSim(mState, priorityList, damageLimit)
+        mState['player']['baseStats'][cStat] = mState['player']['baseStats'][cStat] * (1 + delta)
+        (states, results) = runSim(mState, priorityList)
         (prepullEnd, simDuration) = getDuration(results)
         # Get the DPS of the new simulation
         cDPS = sum( r['damage'] for r in results if 'damage' in r ) / simDuration
-        statWeights[cStat] = cDPS - avgDPS
+        statWeights[cStat] = (cDPS - avgDPS) / mState['player']['baseStats'][cStat]
     # Normalize weights: main stat weight = 1
     strWeight = statWeights['strength']
     for cStat in stats :
         statWeights[cStat] = statWeights[cStat] / strWeight 
+    return statWeights
+    
+def plotStatVariation(initialState, priorityList, stat, maxDelta = 0.3, nSteps = 100) :
+    gDPS = []
+    baseStat = initialState['player']['baseStats'][stat]
+    gStats = [ baseStat * (1 - maxDelta) + i * baseStat * 2 * maxDelta / nSteps for i in range(nSteps + 1) ]
+    for statVal in gStats :
+        mState = copy.deepcopy(initialState)
+        mState['player']['baseStats'][stat] = statVal
+        (states, results) = runSim(mState, priorityList)
+        (prepullEnd, simDuration) = getDuration(results)
+        cDPS = sum( r['damage'] for r in results if 'damage' in r ) / simDuration
+        gDPS = gDPS + [cDPS]
+    pl.plot(gStats, gDPS)
+
+def avgStatWeights(statWeightsArray) :
+    stats = ['strength', 'criticalHitRate', 'determination', 'skillSpeed', 'weaponDamage'] 
+    statWeights = {}
+    for stat in stats :
+        statWeights[stat] = np.mean([ sw[stat] for sw in statWeightsArray ])
     return statWeights
 
 def simContinue(state, timeLimit = None) :
@@ -279,6 +299,17 @@ def sortTable(tSkill):
         tSkill[i] = tSkill[i][gDmgOrder]
     return tSkill
 
+def printWeights(statWeights):
+    """Print stat weights in order from higher to lower
+    """
+    # Couples stat name, weight value by decreasing weight value
+    sortedWeights = sorted([ [key, statWeights[key]] for key in statWeights ], key = lambda x: x[1], reverse = True)
+    # Max length of stat names for formatting
+    maxLength = max(len(w[0]) for w in sortedWeights)
+    # Prints the list of stat weights
+    for w in sortedWeights :
+        print ''.join([ '{:>', str(maxLength), '}: {:8.5f}' ]).format(w[0], w[1])
+
 def showGraphs(gTimeline, gDPS, tSkill) :
     """Displays 2 graphs:
     DPS over time
@@ -316,6 +347,7 @@ def simulate(
     variation,
     nbSim,
     runStatWeights = False,
+    plotStats = [],
     randomize = True,
     autoAttack = 0.5,
     dotTick = 1,
@@ -409,7 +441,7 @@ def simulate(
             # stat weights for each simulation if asked for it
             locStatWeights = {}
             if runStatWeights:
-                locStatWeights = getStatsWeights(initialState, priorityList, damageLimit, avgDPS)
+                locStatWeights = getStatsWeights(initialState, plist, locAvgDPS)
             statWeights = statWeights + [locStatWeights]
         # Averages results of skill table through the different simulations
         avgTSkill = sTSkill
@@ -419,6 +451,9 @@ def simulate(
         # Sorts average table and example table
         sTSkill = sortTable(sTSkill)
         avgTSkill = sortTable(avgTSkill)
+        if runStatWeights:
+            print statWeights
+            statWeights = avgStatWeights(statWeights)
         if verbose:
             # Displays graphs of results for the single simulation example:
             # DPS over time and DPS distribution across skills
@@ -430,8 +465,14 @@ def simulate(
             print 'First 50 actions:'
             for i in range(50):
                 print gCycleSkills[i]
+            print ''
             # Pretty prints the table of skills averaged across simulations
             printTable(avgTSkill, titles) 
+            print ''
+            # Pretty prints the stat weights if computed
+            if runStatWeights :
+                printWeights(statWeights)
+                print ''
             # Average DPS and TPSPS averaged across simulations
             print 'average DPS: ', np.mean(avgDPS)
             print 'average TP spent per second',  np.mean(avgTPSPS)
@@ -447,19 +488,28 @@ def simulate(
         # Gets the stat weights if asked for it
         statWeights = {}
         if runStatWeights:
-            statWeights = getStatsWeights(initialState, priorityList, damageLimit, avgDPS)
+            statWeights = getStatsWeights(initialState, plist, avgDPS)
         # Sorts the skill table
         tSkill = sortTable(tSkill)
         if verbose:
             # Displays graphs of results for the simulation:
             # DPS over time and DPS distribution across skills
-            showGraphs(gTimeline, gDPS, tSkill)
+            showGraphs(gTimeline, gDPS, tSkill)            
+            if plotStats != [] :
+                for stat in plotStats :
+                    plotStatVariation(initialState, plist, stat)
             # Shows the first 50 actions of the character
             print 'First 50 actions:'
             for i in range(50):
                 print gCycleSkills[i]
+            print ''
             # Pretty prints the table of skills
             printTable(tSkill, titles) 
+            print ''
+            # Pretty prints the stat weights if computed
+            if runStatWeights :
+                printWeights(statWeights)
+                print ''
             # Average DPS and TPSPS
             print 'average DPS: ', avgDPS
             print 'average TP spent per second', avgTPSPS

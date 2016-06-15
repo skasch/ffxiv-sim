@@ -14,14 +14,14 @@ from priorityParser import priorityParser, priorityDeparser
 
 # Simulation parameters
 model = 'monk'
-strength = 1306
-criticalHitRate = 814
-determination = 523
+strength = 1308
+criticalHitRate = 934
+determination = 619
 skillSpeed = 741
 weaponDamage = 81
 weaponDelay = 2.56
 weaponType = 'blunt'
-duration = 8
+duration = 5
 variation = 0
 nbSim = 1
 runStatWeights = False
@@ -43,8 +43,8 @@ dmgLimit = simulate(
     duration,
     variation,
     nbSim,
-    runStatWeights,
-    randomize,
+    runStatWeights = runStatWeights,
+    randomize = randomize,
     dmgLimit = 'get',
     verbose = False
 )
@@ -62,8 +62,8 @@ dmgLimit = simulate(
     duration,
     variation,
     nbSim,
-    runStatWeights,
-    randomize,
+    runStatWeights = runStatWeights,
+    randomize = randomize,
     dmgLimit = dmgLimit,
     verbose = False
 )
@@ -75,33 +75,33 @@ while unoptimized :
     unoptimized = False
     # Try to switch two elements from the priority list and calcuate the new DPS
     for i in range(len(priorityList) - 1):
-        for j in range(i + 1, len(priorityList)):
-#        j = i+1
-            newPriorityList = copy.deepcopy(priorityList)
-            newPriorityList[i], newPriorityList[j] = newPriorityList[j], newPriorityList[i]
-            (_, _, newDPS, _, _, _, _) = simulate(
-                newPriorityList,
-                strength,
-                criticalHitRate,
-                determination,
-                skillSpeed,
-                weaponDamage,
-                weaponDelay,
-                weaponType,
-                duration,
-                variation,
-                nbSim,
-                runStatWeights,
-                randomize,
-                dmgLimit = dmgLimit,
-                verbose = False
-            )
-            print newDPS
-            # if new DPS is higher than old DPS update reference DPS
-            if newDPS > refDPS * 1.0001:
-                unoptimized = True
-                bestPerm = (i, j)
-                refDPS = newDPS
+#        for j in range(i + 1, len(priorityList)):
+        j = i+1
+        newPriorityList = copy.deepcopy(priorityList)
+        newPriorityList[i], newPriorityList[j] = newPriorityList[j], newPriorityList[i]
+        (_, _, newDPS, _, _, _, _) = simulate(
+            newPriorityList,
+            strength,
+            criticalHitRate,
+            determination,
+            skillSpeed,
+            weaponDamage,
+            weaponDelay,
+            weaponType,
+            duration,
+            variation,
+            nbSim,
+            runStatWeights = runStatWeights,
+            randomize = randomize,
+            dmgLimit = dmgLimit,
+            verbose = False
+        )
+        print newDPS
+        # if new DPS is higher than old DPS update reference DPS
+        if newDPS > refDPS * 1.0001:
+            unoptimized = True
+            bestPerm = (i, j)
+            refDPS = newDPS
         #
     if unoptimized :
         # if reference DPS has changed, update priority list accordingly
