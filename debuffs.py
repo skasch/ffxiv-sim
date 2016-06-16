@@ -5,7 +5,9 @@ Created on Tue May 31 16:47:37 2016
 @author: rmondoncancel
 """
 
-def d():
+from skillManagement import prepareGroup
+
+def d(pClass):
     """Returns the list of debuffs
     name: name of the debuff
     duration: duration of the debuff
@@ -47,4 +49,35 @@ def d():
             'potency': 20,
         },
     }
-    return d
+    d['phlebotomize'] = {
+        'name': 'phlebotomize',
+        'duration': 24,
+        'type': 'DoT',
+        'props': {
+            'potency': 30,
+        },
+    }
+    d['disembowel'] = {
+        'name': 'disembowel',
+        'duration': 20,
+        'type': 'debuff',
+        'props': {
+            'piercing': 0.1,
+        },
+        'traitBonus': {
+            'class': 'lancer', 
+            'level': 48, 
+            'bonus': {
+                'duration': 30,
+            }
+        },
+    }
+    d['chaosThrust'] = {
+        'name': 'chaosThrust',
+        'duration': 30,
+        'type': 'DoT',
+        'props': {
+            'potency': 35,
+        },
+    }
+    return prepareGroup(d, pClass)

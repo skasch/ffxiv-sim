@@ -22,7 +22,7 @@ def findBestSkill(state, priorityList) :
         # If the condition is True for the current state
         if reduceConditions(state, priorityElement['condition']) :
             # If True, return this skill as the best possible skill
-            skill = s()[priorityElement['group']][priorityElement['name']]
+            skill = s(state['player']['class'])[priorityElement['group']][priorityElement['name']]
             break
     return skill
 

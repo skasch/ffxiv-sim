@@ -16,6 +16,7 @@ from timelineManagement import solveCurrentAction
 from priorityParser import isFloat
 
 def getInitializer(
+    pClass,
     strength, 
     criticalHitRate, 
     determination, 
@@ -30,6 +31,7 @@ def getInitializer(
     one simulation to another
     """
     return lambda autoAttack, dotTick, hp = None : initializeState(
+    pClass,
         strength,
         criticalHitRate,
         determination,
@@ -43,6 +45,7 @@ def getInitializer(
     )
 
 def initializeState(
+    pClass,
     strength,
     criticalHitRate,
     determination,
@@ -73,6 +76,7 @@ def initializeState(
     # baseStats: baseStats of the character
     # cooldown: list of skills on cooldown
     state['player'] = {
+        'class': pClass,
         'buff': [],
         'baseStats': {},
         'cooldown': [],
@@ -336,6 +340,7 @@ def printTable(table, titles) :
 
 def simulate(
     model,
+    pClass,
     strength,
     criticalHitRate,
     determination,
@@ -377,9 +382,10 @@ def simulate(
     else :
         priorityList = model
     # Format priority list
-    plist = formatPriorityList(priorityList)
+    plist = formatPriorityList(priorityList, pClass)
     # Initial state initializer with constant stats
-    initializer = getInitializer(strength,
+    initializer = getInitializer(pClass,
+                                 strength,
                                  criticalHitRate,
                                  determination,
                                  skillSpeed,

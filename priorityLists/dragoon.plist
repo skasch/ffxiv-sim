@@ -1,0 +1,11 @@
+dragoon.bloodOfTheDragon if (state.lastGCD is disembowel or state.lastGCD is vorpalThrust)
+dragoon.fangAndClaw
+dragoon.wheelingThrust
+lancer.chaosThrust if state.lastGCD is disembowel
+lancer.fullThrust if state.lastGCD is vorpalThrust
+lancer.disembowel if state.lastGCD is impulseDrive
+lancer.vorpalThrust if state.lastGCD is trueThrust
+lancer.heavyThrust if buffTimeLeft.heavyThrust <= 5
+lancer.phlebotomize if (buffTimeLeft.heavyThrust >= 10 and (state.lastGCD is fangAndClaw or state.lastGCD is wheelingThrust))
+lancer.impulseDrive if debuffTimeLeft.chaosThrust <= 15
+lancer.trueThrust

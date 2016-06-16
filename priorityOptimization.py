@@ -14,6 +14,7 @@ from priorityParser import priorityParser, priorityDeparser
 
 # Simulation parameters
 model = 'monk'
+pClass = 'pugilist'
 strength = 1308
 criticalHitRate = 934
 determination = 619
@@ -33,6 +34,7 @@ priorityList = priorityParser(model)
 # Get damage limit to run simulation with HP limit
 dmgLimit = simulate(
     priorityList,
+    pClass,
     strength,
     criticalHitRate,
     determination,
@@ -52,6 +54,7 @@ dmgLimit = simulate(
 # Get reference DPS for damage limit
 (_, _, refDPS, _, _, _, _) = simulate(
     priorityList,
+    pClass,
     strength,
     criticalHitRate,
     determination,
@@ -81,6 +84,7 @@ while unoptimized :
         newPriorityList[i], newPriorityList[j] = newPriorityList[j], newPriorityList[i]
         (_, _, newDPS, _, _, _, _) = simulate(
             newPriorityList,
+            pClass,
             strength,
             criticalHitRate,
             determination,

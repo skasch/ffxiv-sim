@@ -9,13 +9,100 @@ from stateManagement import \
     getBuff, applyBuff, removeBuff, applyDebuff, getResistance, addAction, \
     nextAction, applyDamage
 from dpsCalculation import \
-    baseDamage, basePotency, critChance, critBonus, gcdTick, dotTick, strBonus
+    baseDamage, basePotency, critChance, critBonus, gcdTick, dotTick, \
+    strBonus, buffedPotency
 from priorityManagement import actionToGcdType
 from buffs import b
 from debuffs import d
+import random
 
 import copy
 TIME_EPSILON = 0.000000001
+
+def comboBonus(state, skill) :
+    newSkill = copy.deepcopy(skill)
+    if 'combo' in newSkill and state['timeline']['lastGCD'] == newSkill['combo'][0] :
+        for bonus in newSkill['combo'][1] :
+            newSkill[bonus] = newSkill['combo'][1][bonus]
+    return newSkill
+
+def specialAction(state, skill) :
+    """Modify the state if the skill has a 'special' property
+    The special property contains a key, and this function modifies the state
+    according to what is supposed to happen when this specific key is found.
+    """
+    newState = copy.deepcopy(state)
+    # Returns the state is no special property is present
+    if 'special' not in skill :
+        return newState
+    # MNK
+    # Add an action to remove all forms at the end of perfectBalance
+    if skill['special'] == 'removeForms' :
+        newState = addAction(newState, b(state['player']['class'])[skill['addBuff'][0]]['duration'], { 'type': 'special', 'name': skill['special'] })
+    # Switch to next form when using formShift
+    elif skill['special'] == 'nextForm' :
+        forms = [ 'opoOpoForm', 'raptorForm', 'coerlForm' ]
+        if forms[0] in [ pb[0]['name'] for pb in newState['player']['buff'] ] :
+            newState = removeBuff(newState, forms)
+            newState = applyBuff(newState, b(state['player']['class'])[forms[1]])
+        elif forms[1] in [ pb[0]['name'] for pb in newState['player']['buff'] ] :
+            newState = removeBuff(newState, forms)
+            newState = applyBuff(newState, b(state['player']['class'])[forms[2]])
+        elif forms[2] in [ pb[0]['name'] for pb in newState['player']['buff'] ] :
+            newState = removeBuff(newState, forms)
+            newState = applyBuff(newState, b(state['player']['class'])[forms[0]])
+        else :
+            newState = applyBuff(newState, b(state['player']['class'])[forms[0]])
+    # Add skill buff for bootshine to have 100% crit chance if in opoOpoForm
+    elif skill['special'] == 'bootshineCrit' :
+        if 'opoOpoForm' in [ pb[0]['name'] for pb in newState['player']['buff'] ] or 'perfectBalance' in [ pb[0]['name'] for pb in newState['player']['buff'] ] :
+            newState = applyBuff(newState, b(state['player']['class'])[skill['special']])
+    # Apply dragonKick debuff at the end of the skill if in opoOpoForm
+    elif skill['special'] == 'dragonKick' :
+        if 'opoOpoForm' in [ pb[0]['name'] for pb in newState['player']['buff'] ] or 'perfectBalance' in [ pb[0]['name'] for pb in newState['player']['buff'] ] :
+            newState = addAction(newState, 0, { 'type': 'special', 'name': skill['special'] })
+    # DGN
+    elif skill['special'] == 'procBloodOfTheDragon' :
+        if 'bloodOfTheDragon' in [ pb[0]['name'] for pb in newState['player']['buff'] ] :
+            if random.random() < 0.5 :
+                newState = addAction(newState, 0, { 'type': 'special', 'name': 'sharperFangAndClaw' })
+            else :
+                newState = addAction(newState, 0, { 'type': 'special', 'name': 'enhancedWheelingThrust' })
+    elif skill['special'] == 'surgeBonus' :
+        if 'powerSurge' in [ pb[0]['name'] for pb in newState['player']['buff'] ] :
+            newState = applyBuff(newState, b(state['player']['class'])['surgeBonus'])
+    elif skill['special'] == 'extendBloodOfTheDragon' :
+        if 'bloodOfTheDragon' in [ pb[0]['name'] for pb in newState['player']['buff'] ] :
+            currentTimestamp = min( na[0] for na in newState['timeline']['nextActions'] if na[1] == { 'name': 'bloodOfTheDragon', 'type': 'removeBuff' } )
+            newState['timeline']['nextActions'] = [ na for na in newState['timeline']['nextActions'] if na[1] != { 'name': 'bloodOfTheDragon', 'type': 'removeBuff' } ]
+            newState = addAction(newState, min(30, currentTimestamp + 15), { 'name': 'bloodOfTheDragon', 'type': 'removeBuff' })
+    elif skill['special'] == 'reduceBloodOfTheDragon' :
+        if 'bloodOfTheDragon' in [ pb[0]['name'] for pb in newState['player']['buff'] ] :
+            currentTimestamp = min( na[0] for na in newState['timeline']['nextActions'] if na[1] == { 'name': 'bloodOfTheDragon', 'type': 'removeBuff' } )
+            newState['timeline']['nextActions'] = [ na for na in newState['timeline']['nextActions'] if na[1] != { 'name': 'bloodOfTheDragon', 'type': 'removeBuff' } ]
+            newState = addAction(newState, max(0, currentTimestamp - 10), { 'name': 'bloodOfTheDragon', 'type': 'removeBuff' })
+    return newState
+
+def applySpecialAction(state, name) :
+    """Resolve special actions created by special mechanics in the 
+    specialAction function if the said mechanic require an application delay
+    """
+    newState = copy.deepcopy(state)
+    # MNK
+    # Remove all forms at the end on perfectBalance
+    if name == 'removeForms' :
+        forms = [ 'opoOpoForm', 'raptorForm', 'coerlForm' ]
+        newState = removeBuff(newState, forms)
+    # Apply dragonKick debuff right after dragonKick is cast
+    elif name == 'dragonKick' :
+        newState = applyDebuff(newState, d(state['player']['class'])[name])
+    # DRG
+    elif name == 'sharperFangAndClaw' :
+        newState = applyBuff(newState, b(state['player']['class'])[name])
+    elif name == 'enhancedWheelingThrust' :
+        newState = applyBuff(newState, b(state['player']['class'])[name])
+    newState = nextAction(newState)
+    return (newState, {})
     
 def computeDamage(state, src, value = None) :
     """Calculates the damage for a given source src
@@ -38,10 +125,12 @@ def computeDamage(state, src, value = None) :
     det = state['player']['baseStats']['determination']
     crt = state['player']['baseStats']['criticalHitRate']
     # Get buffs
+    potBuf = getBuff(state, 'potency')
     dmgBuf = getBuff(state, 'damage')
     crtBuf = getBuff(state, 'critChance')
     stBuff = getBuff(state, 'strength')
     buffedSt = strBonus(stBuff, st)
+    pot = buffedPotency(pot, potBuf)
     # Base damage and crit
     if src == 'DoT' :
         # Add skill speed bonus to damage if DoT
@@ -70,59 +159,6 @@ def computeDamage(state, src, value = None) :
     hitPot = basePot * dmgRes
     critPot = basePot * (1 + crtBonF) * dmgRes
     return (effDmg, effPot, hitDmg, hitPot, critDmg, critPot, crtChc, crtBonF)
-    
-def specialAction(state, skill) :
-    """Modify the state if the skill has a 'special' property
-    The special property contains a key, and this function modifies the state
-    according to what is supposed to happen when this specific key is found.
-    """
-    newState = copy.deepcopy(state)
-    # Returns the state is no special property is present
-    if 'special' not in skill :
-        return newState
-    # MNK
-    # Add an action to remove all forms at the end of perfectBalance
-    if skill['special'] == 'removeForms' :
-        newState = addAction(newState, b()[skill['addBuff'][0]]['duration'], { 'type': 'special', 'name': skill['special'] })
-    # Switch to next form when using formShift
-    elif skill['special'] == 'nextForm' :
-        forms = [ 'opoOpoForm', 'raptorForm', 'coerlForm' ]
-        if forms[0] in [ pb[0]['name'] for pb in newState['player']['buff'] ] :
-            newState = removeBuff(newState, forms)
-            newState = applyBuff(newState, b()[forms[1]])
-        elif forms[1] in [ pb[0]['name'] for pb in newState['player']['buff'] ] :
-            newState = removeBuff(newState, forms)
-            newState = applyBuff(newState, b()[forms[2]])
-        elif forms[2] in [ pb[0]['name'] for pb in newState['player']['buff'] ] :
-            newState = removeBuff(newState, forms)
-            newState = applyBuff(newState, b()[forms[0]])
-        else :
-            newState = applyBuff(newState, b()[forms[0]])
-    # Add skill buff for bootshine to have 100% crit chance if in opoOpoForm
-    elif skill['special'] == 'bootshineCrit' :
-        if 'opoOpoForm' in [ pb[0]['name'] for pb in newState['player']['buff'] ] or 'perfectBalance' in [ pb[0]['name'] for pb in newState['player']['buff'] ] :
-            newState = applyBuff(newState, b()[skill['special']])
-    # Apply dragonKick debuff at the end of the skill if in opoOpoForm
-    elif skill['special'] == 'dragonKick' :
-        if 'opoOpoForm' in [ pb[0]['name'] for pb in newState['player']['buff'] ] or 'perfectBalance' in [ pb[0]['name'] for pb in newState['player']['buff'] ] :
-            newState = addAction(newState, 0, { 'type': 'special', 'name': skill['special'] })
-    return newState
-
-def applySpecialAction(state, name) :
-    """Resolve special actions created by special mechanics in the 
-    specialAction function if the said mechanic require an application delay
-    """
-    newState = copy.deepcopy(state)
-    # MNK
-    # Remove all forms at the end on perfectBalance
-    if name == 'removeForms' :
-        forms = [ 'opoOpoForm', 'raptorForm', 'coerlForm' ]
-        newState = removeBuff(newState, forms)
-    # Apply dragonKick debuff right after dragonKick is cast
-    elif name == 'dragonKick' :
-        newState = applyDebuff(newState, d()[name])
-    newState = nextAction(newState)
-    return (newState, {})
 
 def applyAutoAttack(state) :
     """Apply auto attack to a state.
@@ -175,12 +211,19 @@ def applySkill(state, skill) :
         # require any addition gcd/instant skill at the current state
         if any(newState['timeline']['prepull'].values()) :
             newState['timeline']['prepull'][actionToGcdType(newState['timeline']['currentAction']['type'])] = False
+        # If instant is still to try for prepull but a GCD has jsut been used,
+        # Add an instant to try just after
+        if newState['timeline']['prepull']['instant'] and newState['timeline']['currentAction']['type'] == 'gcdSkill':
+            newState = addAction(newState, 0, { 'type': 'instantSkill' })
+            newState = addAction(newState, TIME_EPSILON, { 'type': 'gcdSkill' })
         # If at the end of the prepull, add a new gcdSkill to start the 
         # rotation
         if not any(newState['timeline']['prepull'].values()) and newState['timeline']['currentAction']['type'] == 'gcdSkill':
             newState = addAction(newState, 0, { 'type': 'gcdSkill' })
         newState = nextAction(newState)
         return (newState, {})
+    # Apply combo bonus if applicable
+    skill = comboBonus(newState, skill)
     # Resolve special action of the current skill if applicable
     newState = specialAction(newState, skill)
     # Get result if skill is a damaging skill and we are not in prepull
@@ -215,10 +258,10 @@ def applySkill(state, skill) :
         newState = removeBuff(newState, skill['removeBuff'])
     if 'addBuff' in skill :
         for bufName in skill['addBuff'] :
-            newState = applyBuff(newState, b()[bufName])
+            newState = applyBuff(newState, b(state['player']['class'])[bufName])
     if 'addDebuff' in skill :
         for debufName in skill['addDebuff'] :
-            newState = applyDebuff(newState, d()[debufName])
+            newState = applyDebuff(newState, d(state['player']['class'])[debufName])
     # Set the current skill on cooldown if applicable
     if skill['cooldown'] > 0 :
         newState = addAction(newState, skill['cooldown'], { 'type': 'removeCooldown', 'name': skill['name'] })
@@ -234,6 +277,8 @@ def applySkill(state, skill) :
         newState['timeline']['prepullTimestamp'][skill['gcdType']] = newState['timeline']['timestamp'] + skill['animationLock']
     # Add an instant skill and a GCD skill if current skill is a GCD skill
     if skill['gcdType'] == 'global' :
+        # Saves last GCD skill for combos
+        newState['timeline']['lastGCD'] = skill['name']
         # Remove next gcdSkills and instantSkills to avoid overlaps
         newState['timeline']['nextActions'] = [ na for na in newState['timeline']['nextActions'] if na[1]['type'] != 'gcdSkill' and na[1]['type'] != 'instantSkill' ]
         newState = addAction(newState, skill['animationLock'], { 'type': 'instantSkill' })

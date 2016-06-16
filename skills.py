@@ -5,7 +5,9 @@ Created on Tue May 31 16:23:07 2016
 @author: rmondoncancel
 """
 
-def s():
+from skillManagement import prepareGroup
+
+def s(pClass):
     """Returns the list of skills
     name: name of the buff
     level: level necessary to unlock the skill
@@ -144,13 +146,20 @@ def s():
         'level': 38,
         'tpCost': 0,
         'gcdType': 'instant',
-        'cooldown': 40,
+        'cooldown': 60,
         'castTime': 0,
         'range': 3,
         'radius': 0,
         'potency': 150,
         'animationLock': 0.75,
         'type': 'blunt',
+        'traitBonus': {
+            'class': 'pugilist', 
+            'level': 44, 
+            'bonus': {
+                'cooldown': 40,
+            }
+        }
     }
     s['pugilist']['howlingFist'] = {
         'name': 'howlingFist',
@@ -285,6 +294,143 @@ def s():
     
     # Lancer
     s['lancer'] = {}
+    s['lancer']['trueThrust'] = {
+        'name': 'trueThrust',
+        'level': 1,
+        'tpCost': 70,
+        'gcdType': 'global',
+        'cooldown': 0,
+        'castTime': 0,
+        'range': 3,
+        'radius': 0,
+        'potency': 150,
+        'animationLock': 0.75,
+        'type': 'piercing',
+    }
+    s['lancer']['vorpalThrust'] = {
+        'name': 'vorpalThrust',
+        'level': 4,
+        'tpCost': 60,
+        'gcdType': 'global',
+        'cooldown': 0,
+        'castTime': 0,
+        'range': 3,
+        'radius': 0,
+        'potency': 100,
+        'animationLock': 0.75,
+        'type': 'piercing',
+        'combo': ('trueThrust', {
+            'potency': 200,
+        }),
+    }
+    s['lancer']['impulseDrive'] = {
+        'name': 'impulseDrive',
+        'level': 8,
+        'tpCost': 70,
+        'gcdType': 'global',
+        'cooldown': 0,
+        'castTime': 0,
+        'range': 3,
+        'radius': 0,
+        'potency': 180,
+        'animationLock': 0.75,
+        'type': 'piercing',
+    }
+    s['lancer']['legSweep'] = {
+        'name': 'legSweep',
+        'level': 10,
+        'tpCost': 0,
+        'gcdType': 'instant',
+        'cooldown': 30,
+        'castTime': 0,
+        'range': 3,
+        'radius': 0,
+        'potency': 130,
+        'animationLock': 0.75,
+        'type': 'piercing',
+        'traitBonus': {
+            'class': 'lancer', 
+            'level': 28, 
+            'bonus': {
+                'cooldown': 20,
+            }
+        }
+    }
+    s['lancer']['heavyThrust'] = {
+        'name': 'heavyThrust',
+        'level': 12,
+        'tpCost': 70,
+        'gcdType': 'global',
+        'cooldown': 0,
+        'castTime': 0,
+        'range': 3,
+        'radius': 0,
+        'potency': 170,
+        'animationLock': 0.75,
+        'type': 'piercing',
+        'addBuff': ['heavyThrust'],
+    }
+    s['lancer']['piercingTalon'] = {
+        'name': 'piercingTalon',
+        'level': 15,
+        'tpCost': 130,
+        'gcdType': 'global',
+        'cooldown': 0,
+        'castTime': 0,
+        'range': 15,
+        'radius': 0,
+        'potency': 120,
+        'animationLock': 0.75,
+        'type': 'piercing',
+    }
+    s['lancer']['lifeSurge'] = {
+        'name': 'lifeSurge',
+        'level': 18,
+        'tpCost': 0,
+        'gcdType': 'instant',
+        'cooldown': 90,
+        'castTime': 0,
+        'animationLock': 0.75,
+        'addBuff': ['lifeSurge'],
+        'traitBonus': {
+            'class': 'lancer', 
+            'level': 32, 
+            'bonus': {
+                'cooldown': 50,
+            }
+        }
+    }
+    s['lancer']['fullThrust'] = {
+        'name': 'fullThrust',
+        'level': 26,
+        'tpCost': 60,
+        'gcdType': 'global',
+        'cooldown': 0,
+        'castTime': 0,
+        'range': 3,
+        'radius': 0,
+        'potency': 100,
+        'animationLock': 0.75,
+        'type': 'piercing',
+        'combo': ('vorpalThrust', {
+            'potency': 360,
+            'special': 'procBloodOfTheDragon',
+        }),
+    }
+    s['lancer']['phlebotomize'] = {
+        'name': 'phlebotomize',
+        'level': 30,
+        'tpCost': 90,
+        'gcdType': 'global',
+        'cooldown': 0,
+        'castTime': 0,
+        'range': 3,
+        'radius': 0,
+        'potency': 170,
+        'animationLock': 0.75,
+        'type': 'piercing',
+        'addDebuff': ['phlebotomize'],
+    }
     s['lancer']['bloodForBlood'] = {
         'name': 'bloodForBlood',
         'level': 34,
@@ -294,6 +440,193 @@ def s():
         'castTime': 0,
         'animationLock': 0.75,
         'addBuff': ['bloodForBlood'],
+    }
+    s['lancer']['disembowel'] = {
+        'name': 'disembowel',
+        'level': 38,
+        'tpCost': 60,
+        'gcdType': 'global',
+        'cooldown': 0,
+        'castTime': 0,
+        'range': 3,
+        'radius': 0,
+        'potency': 100,
+        'animationLock': 0.75,
+        'type': 'piercing',
+        'combo': ('impulseDrive', {
+            'potency': 220,
+            'addDebuff': ['disembowel'],
+        }),
+    }
+    s['lancer']['doomSpike'] = {
+        'name': 'doomSpike',
+        'level': 42,
+        'tpCost': 160,
+        'gcdType': 'global',
+        'cooldown': 0,
+        'castTime': 0,
+        'range': 10,
+        'radius': 10,
+        'potency': 160,
+        'animationLock': 0.75,
+        'type': 'piercing',
+    }
+    s['lancer']['ringOfThorns'] = {
+        'name': 'ringOfThorns',
+        'level': 46,
+        'tpCost': 120,
+        'gcdType': 'global',
+        'cooldown': 0,
+        'castTime': 0,
+        'range': 0,
+        'radius': 5,
+        'potency': 100,
+        'animationLock': 0.75,
+        'type': 'piercing',
+        'combo': ('heavyThrust', {
+            'potency': 150,
+        }),
+    }
+    s['lancer']['chaosThrust'] = {
+        'name': 'chaosThrust',
+        'level': 50,
+        'tpCost': 60,
+        'gcdType': 'global',
+        'cooldown': 0,
+        'castTime': 0,
+        'range': 3,
+        'radius': 0,
+        'potency': 100,
+        'animationLock': 0.75,
+        'type': 'piercing',
+        'combo': ('disembowel', {
+            'potency': 250,
+            'addDebuff': ['chaosThrust'],
+            'special': 'procBloodOfTheDragon',
+        }),
+    }
+    
+    #Dragoon
+    s['dragoon'] = {}
+    s['dragoon']['jump'] = {
+        'name': 'jump',
+        'level': 30,
+        'tpCost': 0,
+        'gcdType': 'instant',
+        'cooldown': 30,
+        'castTime': 0,
+        'range': 20,
+        'radius': 0,
+        'potency': 200,
+        'animationLock': 0.75,
+        'type': 'piercing',
+        'removeBuff': ['powerSurge'],
+        'special': 'surgeBonus',
+    }
+    s['dragoon']['spineshatterDrive'] = {
+        'name': 'spineshatterDrive',
+        'level': 40,
+        'tpCost': 0,
+        'gcdType': 'instant',
+        'cooldown': 60,
+        'castTime': 0,
+        'range': 20,
+        'radius': 0,
+        'potency': 170,
+        'animationLock': 0.75,
+        'type': 'piercing',
+        'removeBuff': ['powerSurge'],
+        'special': 'surgeBonus',
+    }
+    s['dragoon']['powerSurge'] = {
+        'name': 'powerSurge',
+        'level': 45,
+        'tpCost': 0,
+        'gcdType': 'instant',
+        'cooldown': 60,
+        'castTime': 0,
+        'animationLock': 0.75,
+        'addBuff': ['powerSurge'],
+    }
+    s['dragoon']['dragonfireDive'] = {
+        'name': 'dragonfireDive',
+        'level': 50,
+        'tpCost': 0,
+        'gcdType': 'instant',
+        'cooldown': 120,
+        'castTime': 0,
+        'range': 20,
+        'radius': 5,
+        'potency': 250,
+        'animationLock': 0.75,
+        'type': 'piercing',
+    }
+    s['dragoon']['battleLitany'] = {
+        'name': 'battleLitany',
+        'level': 52,
+        'tpCost': 0,
+        'gcdType': 'instant',
+        'cooldown': 180,
+        'castTime': 0,
+        'range': 0,
+        'radius': 15,
+        'animationLock': 0.75,
+        'addBuff': ['battleLitany'],
+    }
+    s['dragoon']['bloodOfTheDragon'] = {
+        'name': 'bloodOfTheDragon',
+        'level': 54,
+        'tpCost': 0,
+        'gcdType': 'instant',
+        'cooldown': 60,
+        'castTime': 0,
+        'animationLock': 0.75,
+        'addBuff': ['bloodOfTheDragon'],
+        'removeBuff': ['sharperFangAndClaw', 'enhancedWheelingThrust'],
+    }
+    s['dragoon']['fangAndClaw'] = {
+        'name': 'fangAndClaw',
+        'level': 56,
+        'tpCost': 60,
+        'gcdType': 'global',
+        'cooldown': 0,
+        'castTime': 0,
+        'range': 3,
+        'radius': 0,
+        'potency': 290,
+        'animationLock': 0.75,
+        'type': 'piercing',
+        'requiredBuff': ['sharperFangAndClaw'],
+        'special': 'extendBloodOfTheDragon',
+    }
+    s['dragoon']['wheelingThrust'] = {
+        'name': 'wheelingThrust',
+        'level': 58,
+        'tpCost': 60,
+        'gcdType': 'global',
+        'cooldown': 0,
+        'castTime': 0,
+        'range': 3,
+        'radius': 0,
+        'potency': 290,
+        'animationLock': 0.75,
+        'type': 'piercing',
+        'requiredBuff': ['enhancedWheelingThrust'],
+        'special': 'extendBloodOfTheDragon',
+    }
+    s['dragoon']['geirskogul'] = {
+        'name': 'geirskogul',
+        'level': 60,
+        'tpCost': 0,
+        'gcdType': 'instant',
+        'cooldown': 10,
+        'castTime': 0,
+        'range': 15,
+        'radius': 15,
+        'potency': 200,
+        'animationLock': 0.75,
+        'requiredBuff': ['bloodOfTheDragon'],
+        'special': 'reduceBloodOfTheDragon',
     }
     
     # Marauder
@@ -326,8 +659,8 @@ def s():
         'type': 'slashing',
         'condition': {
             'comparison': '<=',
-            'type': 'enemy',
-            'name': 'lifePercent',
+            'type': 'state',
+            'name': 'enemyLifePercent',
             'value': 20,
         }
     }
@@ -352,4 +685,4 @@ def s():
         'animationLock': 0.75,
         'addBuff': ['potionOfStrengthHQ'],
     }
-    return s
+    return prepareGroup(s, pClass, skill = True)

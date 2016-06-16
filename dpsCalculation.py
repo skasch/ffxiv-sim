@@ -15,6 +15,13 @@ def strBonus(stBuff, st) :
 def reduceBuffs(buf):
     return reduce(lambda x, y: x * (1 + y), buf, 1)
 
+def buffedPotency(pot, buf) :
+    """Get the base potency of the skill given specific buffs; applied BEFORE
+    damage/potency calculation for damage buffs
+    """
+    bufF = reduceBuffs(buf)
+    return pot * bufF
+
 def baseDamage(pot, wd, st, det, buf) :
     """Get the damage output for given potency, stats, and buffs
     See Dervy's damage formula for source

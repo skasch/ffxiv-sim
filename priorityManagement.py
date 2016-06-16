@@ -30,13 +30,13 @@ def operatorToFunction(operator) :
     elif operator == 'or':
         return lambda x, y: x or y
 
-def formatPriorityList(priorityList) :
+def formatPriorityList(priorityList, pClass) :
     """Format a priority list to add hidden conditions for each skill
     See addHiddenConditions for more details
     """
-    return [ addHiddenConditions(pe) for pe in priorityList ]
+    return [ addHiddenConditions(pe, pClass) for pe in priorityList ]
     
-def addHiddenConditions(priorityElement) :
+def addHiddenConditions(priorityElement, pClass) :
     """Add hidden conditions for a priority element
     * Add a condition on GCD type (global vs instant) to use the correct skills
       for a given action
@@ -46,7 +46,7 @@ def addHiddenConditions(priorityElement) :
     * Add additional conditions present in skill description
     """
     # Get the skill matching the priority element
-    skill = s()[priorityElement['group']][priorityElement['name']]
+    skill = s(pClass)[priorityElement['group']][priorityElement['name']]
     newPriorityElement = copy.deepcopy(priorityElement)
     # Add GCD type check to condition
     if 'condition' not in newPriorityElement :
@@ -78,7 +78,7 @@ def addHiddenConditions(priorityElement) :
         # Loop on required buffs
         for bufName in skill['requiredBuff'] :
             # Check if buffs has stacks
-            if 'maxStacks' in b()[bufName] :
+            if 'maxStacks' in b(pClass)[bufName] :
                 reqBufList = reqBufList + [ {
                     'type': 'buffAtMaxStacks', 
                     'name': bufName,
@@ -170,7 +170,7 @@ def getConditionValue(state, condition) :
     if condition['type'] == 'buffPresent':
         return condition['name'] in [ bf[0]['name'] for bf in state['player']['buff'] ]
     elif condition['type'] == 'buffAtMaxStacks':
-        return condition['name'] in [ bf[0]['name'] for bf in state['player']['buff'] if 'maxStacks' in b()[bf[0]['name']] and bf[1] == b()[bf[0]['name']]['maxStacks'] ]
+        return condition['name'] in [ bf[0]['name'] for bf in state['player']['buff'] if 'maxStacks' in b(state['player']['class'])[bf[0]['name']] and bf[1] == b(state['player']['class'])[bf[0]['name']]['maxStacks'] ]
     elif condition['type'] == 'buffTimeLeft':
         timers = [ na[0] - state['timeline']['timestamp'] for na in state['timeline']['nextActions'] if na[1] == { 'type': 'removeBuff', 'name': condition['name'] } ]
         if len(timers) == 0:
@@ -197,11 +197,13 @@ def getConditionValue(state, condition) :
             return condition['delay']
         nextGcdTimestamp = min( na[0] for na in state['timeline']['nextActions'] if na[1]['type'] == 'gcdSkill' )
         return max(0, state['timeline']['timestamp'] + condition['delay'] - nextGcdTimestamp)
-    elif condition['type'] == 'enemy':
-        if condition['name'] == 'lifePercent' :
+    elif condition['type'] == 'state':
+        if condition['name'] == 'enemyLifePercent' :
             if 'hp' not in state['enemy'] or 'maxHp' not in state['enemy'] :
                 return 100
             return 100 * state['enemy']['hp'] / state['enemy']['maxHp']
+        elif condition['name'] == 'lastGCD' :
+            return state['timeline']['lastGCD'] if 'lastGCD' in state['timeline'] else None
 
 def testCondition(state, condition) :
     """Test a single condition
