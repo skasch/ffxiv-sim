@@ -15,44 +15,21 @@ from priorityManagement import formatPriorityList
 from timelineManagement import solveCurrentAction
 from priorityParser import isFloat
 
-def getInitializer(
-    pClass,
-    strength, 
-    criticalHitRate, 
-    determination, 
-    skillSpeed, 
-    weaponDamage, 
-    weaponDelay, 
-    weaponType,
-) :
+def getInitializer(character) :
     """Returns a function to create the initial state with parameters constant
     across the simulations taking the variable ones as input
     autoAttack, dotTick and hp are the variable elements that can change from
     one simulation to another
     """
     return lambda autoAttack, dotTick, hp = None : initializeState(
-    pClass,
-        strength,
-        criticalHitRate,
-        determination,
-        skillSpeed,
-        weaponDamage,
-        weaponDelay,
-        weaponType,
+        character,
         autoAttack,
         dotTick,
         hp,
     )
 
 def initializeState(
-    pClass,
-    strength,
-    criticalHitRate,
-    determination,
-    skillSpeed,
-    weaponDamage,
-    weaponDelay,
-    weaponType,
+    character,
     autoAttack,
     dotTick,
     hp = None,
@@ -76,7 +53,7 @@ def initializeState(
     # baseStats: baseStats of the character
     # cooldown: list of skills on cooldown
     state['player'] = {
-        'class': pClass,
+        'class': character['class'],
         'buff': [],
         'baseStats': {},
         'cooldown': [],
@@ -116,13 +93,13 @@ def initializeState(
     
     # Set character base stats
     state['player']['baseStats'] = {
-        'strength': applyPartyBuff(strength),
-        'criticalHitRate': criticalHitRate,
-        'determination': determination,
-        'skillSpeed': skillSpeed,
-        'weaponDamage': weaponDamage,
-        'weaponDelay': weaponDelay,
-        'weaponType': weaponType,
+        'strength': applyPartyBuff(character['strength']),
+        'criticalHitRate': character['criticalHitRate'],
+        'determination': character['determination'],
+        'skillSpeed': character['skillSpeed'],
+        'weaponDamage': character['weaponDamage'],
+        'weaponDelay': character['weaponDelay'],
+        'weaponType': character['weaponType'],
     }
     return state
 
@@ -340,14 +317,6 @@ def printTable(table, titles) :
 
 def simulate(
     model,
-    pClass,
-    strength,
-    criticalHitRate,
-    determination,
-    skillSpeed,
-    weaponDamage,
-    weaponDelay,
-    weaponType,
     duration,
     variation,
     nbSim,
@@ -378,20 +347,13 @@ def simulate(
     # Priority list; loads the file if a file name, otherwise understand model
     # as a priority list object
     if type(model) is str :
-        priorityList = priorityParser(model)
+        (priorityList, character) = priorityParser(model)
     else :
-        priorityList = model
+        (priorityList, character) = model
     # Format priority list
-    plist = formatPriorityList(priorityList, pClass)
+    plist = formatPriorityList(priorityList, character['class'])
     # Initial state initializer with constant stats
-    initializer = getInitializer(pClass,
-                                 strength,
-                                 criticalHitRate,
-                                 determination,
-                                 skillSpeed,
-                                 weaponDamage,
-                                 weaponDelay,
-                                 weaponType)
+    initializer = getInitializer(character)
     
     # Get damage limit if not already specified
     if not isFloat(dmgLimit) :
@@ -423,7 +385,7 @@ def simulate(
         for i in range(nbSim):
             # Randomize first auto-attack timestamp, first DoT tick timestamp
             # and damage limit within +/- variation
-            autoAttack = random.uniform(0, weaponDelay)
+            autoAttack = random.uniform(0, character['weaponDelay'])
             dotTick = random.uniform(0, 3)
             randDmgLimit = random.uniform(damageLimit * (1 - variation), damageLimit * (1 + variation))
             # Run simulation

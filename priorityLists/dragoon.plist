@@ -1,4 +1,27 @@
+set class lancer
+set strength 1308
+set criticalHitRate 1099
+set determination 567
+set skillSpeed 621
+set weaponDamage 81
+set weaponDelay 2.88
+set weaponType piercing
+
+# instants
+dragoon.geirskogul if (buffTimeLeft.bloodOfTheDragon >= 21 or cooldownPresent.bloodOfTheDragon is False)
+dragoon.battleLitany if buffTimeLeft.heavyThrust >= 16
+lancer.bloodForBlood if buffTimeLeft.heavyThrust >= 16
+pugilist.internalRelease if buffPresent.bloodForBlood is True
 dragoon.bloodOfTheDragon if (state.lastGCD is disembowel or state.lastGCD is vorpalThrust)
+item.potionOfStrengthHQ if buffTimeLeft.heavyThrust >= 13
+dragoon.powerSurge if (buffTimeLeft.heavyThrust >= 6 and cooldownPresent.jump is False)
+lancer.legSweep if buffPresent.heavyThrust is True
+lancer.lifeSurge if (state.lastGCD is vorpalThrust or buffPresent.sharperFangAndClaw is True or buffPresent.enhancedWheelingThrust is True)
+dragoon.jump if (buffPresent.powerSurge is True or cooldownTimeLeft.powerSurge >= 20)
+dragoon.dragonfireDive if buffPresent.heavyThrust is True
+dragoon.spineshatterDive if buffPresent.heavyThrust is True
+
+# globals
 dragoon.fangAndClaw
 dragoon.wheelingThrust
 lancer.chaosThrust if state.lastGCD is disembowel

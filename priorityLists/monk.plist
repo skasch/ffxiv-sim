@@ -1,3 +1,13 @@
+set class pugilist
+set strength 1308
+set criticalHitRate 934
+set determination 619
+set skillSpeed 741
+set weaponDamage 81
+set weaponDelay 2.56
+set weaponType blunt
+
+# prepull
 prepull monk.formShift if buffPresent.coerlForm is False
 prepull monk.fistOfFire if buffPresent.fistOfFire is False
 prepull monk.meditation if buffAtMaxStacks.chakra is False

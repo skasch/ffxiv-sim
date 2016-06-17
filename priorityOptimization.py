@@ -29,19 +29,11 @@ runStatWeights = False
 randomize = False
 
 # Get priority list
-priorityList = priorityParser(model)
+(priorityList, character) = priorityParser(model)
 
 # Get damage limit to run simulation with HP limit
 dmgLimit = simulate(
-    priorityList,
-    pClass,
-    strength,
-    criticalHitRate,
-    determination,
-    skillSpeed,
-    weaponDamage,
-    weaponDelay,
-    weaponType,
+    (priorityList, character),
     duration,
     variation,
     nbSim,
@@ -53,15 +45,7 @@ dmgLimit = simulate(
 
 # Get reference DPS for damage limit
 (_, _, refDPS, _, _, _, _) = simulate(
-    priorityList,
-    pClass,
-    strength,
-    criticalHitRate,
-    determination,
-    skillSpeed,
-    weaponDamage,
-    weaponDelay,
-    weaponType,
+    (priorityList, character),
     duration,
     variation,
     nbSim,
@@ -83,15 +67,7 @@ while unoptimized :
         newPriorityList = copy.deepcopy(priorityList)
         newPriorityList[i], newPriorityList[j] = newPriorityList[j], newPriorityList[i]
         (_, _, newDPS, _, _, _, _) = simulate(
-            newPriorityList,
-            pClass,
-            strength,
-            criticalHitRate,
-            determination,
-            skillSpeed,
-            weaponDamage,
-            weaponDelay,
-            weaponType,
+            (newPriorityList, character),
             duration,
             variation,
             nbSim,

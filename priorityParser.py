@@ -134,9 +134,15 @@ def priorityParser(plFile, absolute = False) :
     with open(plFile, 'r') as f:
         pLines = [ re.sub(' +', ' ', l.rstrip('\n').strip()) for l in f.readlines() if l != '\n' and l[0] != '#' ]
     pList = []
+    character = {}
     # Create a priority element for each line of the priority list file
     for pLine in pLines :
         pElement = {}
+        if pLine[:3] == 'set':
+            key = pLine.split(' ')[1]
+            value = parseValue(pLine.split(' ')[2])
+            character[key] = value
+            continue
         # if the current line starts with prepull then add prepull = True to
         # the priority element
         if pLine[:7] == 'prepull':
@@ -153,7 +159,7 @@ def priorityParser(plFile, absolute = False) :
             pElement['condition'] = unfoldConditions(pLine)
         # Add priority element to the priority list
         pList = pList + [pElement]
-    return pList
+    return (pList, character)
 
 def foldConditions(condition) :
     """Fold conditions to convert the condition of a priority element to the

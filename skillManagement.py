@@ -39,7 +39,7 @@ def removeBloodOfTheDragonBuffs(l, skill) :
     newL = copy.deepcopy(l)
     for group in l :
         for name in l[group] :
-            if 'potency' in newL[group][name] and newL[group][name]['name'] not in ['sharperFangAndClaw', 'enhancedWheelingThrust'] :
+            if 'potency' in newL[group][name] and newL[group][name]['gcdType'] == 'global' and newL[group][name]['name'] not in ['sharperFangAndClaw', 'enhancedWheelingThrust'] :
                 newL[group][name]['removeBuff'] = (newL[group][name]['removeBuff'] if 'removeBuff' in newL[group][name] else []) + ['sharperFangAndClaw', 'enhancedWheelingThrust']
     return newL
 

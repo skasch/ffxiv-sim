@@ -518,13 +518,13 @@ def s(pClass):
         'range': 20,
         'radius': 0,
         'potency': 200,
-        'animationLock': 0.75,
+        'animationLock': 1.25,
         'type': 'piercing',
         'removeBuff': ['powerSurge'],
         'special': 'surgeBonus',
     }
-    s['dragoon']['spineshatterDrive'] = {
-        'name': 'spineshatterDrive',
+    s['dragoon']['spineshatterDive'] = {
+        'name': 'spineshatterDive',
         'level': 40,
         'tpCost': 0,
         'gcdType': 'instant',
@@ -533,7 +533,7 @@ def s(pClass):
         'range': 20,
         'radius': 0,
         'potency': 170,
-        'animationLock': 0.75,
+        'animationLock': 1.25,
         'type': 'piercing',
         'removeBuff': ['powerSurge'],
         'special': 'surgeBonus',
@@ -558,7 +558,7 @@ def s(pClass):
         'range': 20,
         'radius': 5,
         'potency': 250,
-        'animationLock': 0.75,
+        'animationLock': 1.25,
         'type': 'piercing',
     }
     s['dragoon']['battleLitany'] = {
@@ -624,7 +624,8 @@ def s(pClass):
         'range': 15,
         'radius': 15,
         'potency': 200,
-        'animationLock': 0.75,
+        'animationLock': 1.25,
+        'type': 'piercing',
         'requiredBuff': ['bloodOfTheDragon'],
         'special': 'reduceBloodOfTheDragon',
     }
