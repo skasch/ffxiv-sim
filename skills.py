@@ -276,6 +276,20 @@ def s(pClass):
         'animationLock': 0.75,
         'type': 'blunt',
     }
+    s['monk']['purification'] = {
+        'name': 'purification',
+        'level': 58,
+        'tpCost': -300,
+        'gcdType': 'instant',
+        'cooldown': 120,
+        'castTime': 0,
+        'range': 3,
+        'radius': 0,
+        'animationLock': 0.75,
+        'type': 'blunt',
+        'requiredBuff': ['chakra'],
+        'removeBuff': ['chakra'],
+    }
     s['monk']['tornadoKick'] = {
         'name': 'tornadoKick',
         'level': 60,
@@ -397,6 +411,24 @@ def s(pClass):
             'level': 32, 
             'bonus': {
                 'cooldown': 50,
+            }
+        }
+    }
+    s['lancer']['invigorate'] = {
+        'name': 'invigorate',
+        'level': 22,
+        'tpCost': -400,
+        'gcdType': 'instant',
+        'cooldown': 120,
+        'castTime': 0,
+        'range': 0,
+        'radius': 0,
+        'animationLock': 0.75,
+        'traitBonus': {
+            'class': 'lancer', 
+            'level': 36, 
+            'bonus': {
+                'tpRegen': -500,
             }
         }
     }

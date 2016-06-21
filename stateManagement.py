@@ -23,6 +23,17 @@ def nextAction(state) :
     newState['timeline']['nextActions'] = newState['timeline']['nextActions'][1::]
     return newState
 
+def applyTpChange(state, tpDiff) :
+    newState = copy.deepcopy(state)
+    newState['player']['tp'] = max(min(newState['player']['tp'] + tpDiff, 1000), 0)
+    return newState
+
+def tpTick(state) :
+    newState = applyTpChange(state, 60)
+    newState = addAction(newState, 3, { 'type': 'tpTick' })
+    newState = nextAction(newState)
+    return newState
+
 def addAction(state, timeDifference, newAction) :
     """Adds an newAction to a state atfter timeDifference s after the current
     state timestamp

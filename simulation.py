@@ -9,10 +9,11 @@ from simulator import simulate
 
 # Example of inputs / uncomment that and comment CLI inputs to run the 
 # simulation directly
-model = 'dragoon'
-duration = 5
+model = 'monk'
+duration = 10
 variation = 0.2
-nbSim = 50
+nbSim = 20
+useTp = True
 runStatWeights = False
 plotStats = []
 randomize = False
@@ -30,9 +31,8 @@ randomize = False
     duration,
     variation,
     nbSim,
+    useTp,
     runStatWeights = runStatWeights,
     randomize = randomize,
 #    plotStats
 )
-
-

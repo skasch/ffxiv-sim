@@ -7,7 +7,7 @@ Created on Tue May 31 17:00:31 2016
 from priorityManagement import reduceConditions
 from skills import s
 from stateManagement import \
-    nextAction, removeBuff, removeDebuff, removeCooldown
+    nextAction, removeBuff, removeDebuff, removeCooldown, tpTick
 from applyActions import \
     applyDot, applySingleDot, applySkill, applyAutoAttack, applySpecialAction
 
@@ -47,6 +47,8 @@ def solveCurrentAction(state, priorityList) :
     # DoT global tick happens
     elif actionType == 'dotTick' :
         newState = applyDot(state)
+    elif actionType == 'tpTick' :
+        newState = tpTick(state)
     # Action to resolve the damage done by a single DoT when the DoT tick 
     # happens
     elif actionType == 'dot' :

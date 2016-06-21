@@ -7,7 +7,7 @@ Created on Tue May 31 16:57:03 2016
 
 from stateManagement import \
     getBuff, applyBuff, removeBuff, applyDebuff, getResistance, addAction, \
-    nextAction, applyDamage
+    nextAction, applyDamage, applyTpChange
 from dpsCalculation import \
     baseDamage, basePotency, critChance, critBonus, gcdTick, dotTick, \
     strBonus, buffedPotency
@@ -211,21 +211,27 @@ def applySkill(state, skill) :
         # require any addition gcd/instant skill at the current state
         if any(newState['timeline']['prepull'].values()) :
             newState['timeline']['prepull'][actionToGcdType(newState['timeline']['currentAction']['type'])] = False
-        # If instant is still to try for prepull but a GCD has jsut been used,
-        # Add an instant to try just after
-        if newState['timeline']['prepull']['instant'] and newState['timeline']['currentAction']['type'] == 'gcdSkill':
+            # If instant is still to try for prepull but a GCD has jsut been used,
+            # Add an instant to try just after
+            if newState['timeline']['prepull']['instant'] and newState['timeline']['currentAction']['type'] == 'gcdSkill':
+                newState = addAction(newState, 0, { 'type': 'instantSkill' })
+                newState = addAction(newState, TIME_EPSILON, { 'type': 'gcdSkill' })
+            # If at the end of the prepull, add a new gcdSkill to start the 
+            # rotation
+            if not any(newState['timeline']['prepull'].values()) and newState['timeline']['currentAction']['type'] == 'gcdSkill':
+                newState = addAction(newState, 0, { 'type': 'gcdSkill' })
+        elif newState['timeline']['currentAction']['type'] == 'gcdSkill' :
+            nextTpTick = min( na[0] for na in newState['timeline']['nextActions'] if na[1]['type'] == 'tpTick' ) - state['timeline']['timestamp']
             newState = addAction(newState, 0, { 'type': 'instantSkill' })
-            newState = addAction(newState, TIME_EPSILON, { 'type': 'gcdSkill' })
-        # If at the end of the prepull, add a new gcdSkill to start the 
-        # rotation
-        if not any(newState['timeline']['prepull'].values()) and newState['timeline']['currentAction']['type'] == 'gcdSkill':
-            newState = addAction(newState, 0, { 'type': 'gcdSkill' })
+            newState = addAction(newState, nextTpTick + TIME_EPSILON, { 'type': 'gcdSkill' })
         newState = nextAction(newState)
         return (newState, {})
     # Apply combo bonus if applicable
     skill = comboBonus(newState, skill)
     # Resolve special action of the current skill if applicable
     newState = specialAction(newState, skill)
+    
+    newState = applyTpChange(newState, - skill['tpCost'])
     # Get result if skill is a damaging skill and we are not in prepull
     if 'potency' in skill and not any(newState['timeline']['prepull'].values()) :
         (effDmg, effPot, hitDmg, hitPot, critDmg, critPot, crtChc, crtBonF) = computeDamage(newState, 'skill', skill)

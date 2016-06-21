@@ -14,14 +14,6 @@ from priorityParser import priorityParser, priorityDeparser
 
 # Simulation parameters
 model = 'monk'
-pClass = 'pugilist'
-strength = 1308
-criticalHitRate = 934
-determination = 619
-skillSpeed = 741
-weaponDamage = 81
-weaponDelay = 2.56
-weaponType = 'blunt'
 duration = 5
 variation = 0
 nbSim = 1

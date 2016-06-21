@@ -57,6 +57,7 @@ def initializeState(
         'buff': [],
         'baseStats': {},
         'cooldown': [],
+        'tp': 1000,
     }
     # Enemy state
     # debuff: list of debuffs
@@ -85,6 +86,7 @@ def initializeState(
     }
     state = addAction(state, autoAttack, { 'type': 'autoAttack' })
     state = addAction(state, dotTick, { 'type': 'dotTick' })
+    state = addAction(state, dotTick, { 'type': 'tpTick' })
     
     # Add hp and maxHp parameters to the enemy if HP based simulation
     if hp is not None:
@@ -93,7 +95,7 @@ def initializeState(
     
     # Set character base stats
     state['player']['baseStats'] = {
-        'strength': applyPartyBuff(character['strength']),
+        'strength': applyPartyBuff(character['strength']) if 'partyBonus' in character and character['partyBonus'] else character['strength'],
         'criticalHitRate': character['criticalHitRate'],
         'determination': character['determination'],
         'skillSpeed': character['skillSpeed'],
@@ -320,6 +322,7 @@ def simulate(
     duration,
     variation,
     nbSim,
+    useTp = False,
     runStatWeights = False,
     plotStats = [],
     randomize = True,
@@ -351,7 +354,7 @@ def simulate(
     else :
         (priorityList, character) = model
     # Format priority list
-    plist = formatPriorityList(priorityList, character['class'])
+    plist = formatPriorityList(priorityList, character['class'], useTp)
     # Initial state initializer with constant stats
     initializer = getInitializer(character)
     

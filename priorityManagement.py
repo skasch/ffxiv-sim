@@ -30,13 +30,13 @@ def operatorToFunction(operator) :
     elif operator == 'or':
         return lambda x, y: x or y
 
-def formatPriorityList(priorityList, pClass) :
+def formatPriorityList(priorityList, pClass, useTp) :
     """Format a priority list to add hidden conditions for each skill
     See addHiddenConditions for more details
     """
-    return [ addHiddenConditions(pe, pClass) for pe in priorityList ]
+    return [ addHiddenConditions(pe, pClass, useTp) for pe in priorityList ]
     
-def addHiddenConditions(priorityElement, pClass) :
+def addHiddenConditions(priorityElement, pClass, useTp) :
     """Add hidden conditions for a priority element
     * Add a condition on GCD type (global vs instant) to use the correct skills
       for a given action
@@ -139,6 +139,19 @@ def addHiddenConditions(priorityElement, pClass) :
                 skill['condition'],            
             ]
         }
+    if useTp and 'tpCost' in skill :
+        newPriorityElement['condition'] = {
+            'logic': 'and',
+            'list': [
+                newPriorityElement['condition'],
+                {
+                    'type': 'state',
+                    'name': 'tp',
+                    'comparison': '>=',
+                    'value': skill['tpCost']
+                },            
+            ]
+        }
     return newPriorityElement
 
 def actionToGcdType(actionType) :
@@ -204,6 +217,8 @@ def getConditionValue(state, condition) :
             return 100 * state['enemy']['hp'] / state['enemy']['maxHp']
         elif condition['name'] == 'lastGCD' :
             return state['timeline']['lastGCD'] if 'lastGCD' in state['timeline'] else None
+        elif condition['name'] == 'tp' :
+            return state['player']['tp'] if 'tp' in state['player'] else 1000
 
 def testCondition(state, condition) :
     """Test a single condition
