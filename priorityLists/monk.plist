@@ -14,45 +14,32 @@ set weaponType blunt
 set partyBonus True
 set useTp False
 
-# prepull
+# Prepull
 prepull monk.formShift if buffPresent.coerlForm is False
-prepull monk.fistOfFire if buffPresent.fistOfFire is False
 prepull monk.meditation if buffAtMaxStacks.chakra is False
+prepull monk.fistOfFire if buffPresent.fistOfFire is False
 
-# instants
-lancer.bloodForBlood if buffStacks.greasedLightning >= 3
-lancer.bloodForBlood if buffStacks.greasedLightning >= 2
-pugilist.internalRelease if (buffStacks.greasedLightning >= 3 and cooldownTimeLeft.elixirField <= 5.0)
-pugilist.internalRelease if (buffStacks.greasedLightning >= 2 and cooldownTimeLeft.elixirField <= 5.0)
+# Instants
+pugilist.internalRelease if (buffStacks.greasedLightning >= 2.0 and cooldownTimeLeft.elixirField <= 5.0)
+lancer.bloodForBlood if buffStacks.greasedLightning >= 2.0
 pugilist.perfectBalance if cooldownPresent.internalRelease is False
-# monk.tornadoKick if buffPresent.perfectBalance is True
-item.potionOfStrengthHQ if buffStacks.greasedLightning >= 3
-item.potionOfStrengthHQ if buffStacks.greasedLightning >= 2
-monk.elixirField if (buffPresent.internalRelease is True or cooldownTimeLeft.internalRelease >= 10.0)
-pugilist.howlingFist if buffAtMaxStacks.internalRelease is True
-pugilist.howlingFist if buffAtMaxStacks.greasedLightning is True
+item.potionOfStrengthHQ if buffStacks.greasedLightning >= 3.0
 pugilist.steelPeak if buffAtMaxStacks.greasedLightning is True
-# monk.forbiddenChakra if buffPresent.internalRelease is True
-monk.forbiddenChakra if ((state.tp >= 650 and buffPresent.internalRelease is True) or cooldownTimeLeft.purification >= 10)
+monk.elixirField if (buffPresent.internalRelease is True or cooldownTimeLeft.internalRelease >= 10.0)
+pugilist.howlingFist if buffAtMaxStacks.greasedLightning is True
+monk.forbiddenChakra if ((state.tp >= 650.0 and buffPresent.internalRelease is True) or cooldownTimeLeft.purification >= 10.0)
 monk.shoulderTackle if buffAtMaxStacks.greasedLightning is True
 marauder.mercyStroke if buffPresent.internalRelease is True
-marauder.mercyStroke if buffPresent.greasedLightning is True
-lancer.invigorate if state.tp <= 550
-monk.purification if state.tp <= 650
+lancer.invigorate if state.tp <= 550.0
+monk.purification if state.tp <= 650.0
 
-# globals
+# Global
+pugilist.touchOfDeath if (debuffTimeLeft.touchOfDeath <= 1.5 and buffPresent.twinSnakes is True and buffAtMaxStacks.greasedLightning is True)
 pugilist.demolish if debuffTimeLeft.demolish <= 4.5
 pugilist.twinSnakes if buffTimeLeft.twinSnakes <= 2.5
-pugilist.twinSnakes if (buffTimeLeft.twinSnakes <= 2.5 and buffAtMaxStacks.greasedLightning is True)
 pugilist.snapPunch if buffAtMaxStacks.greasedLightning is False
 monk.dragonKick if (debuffTimeLeft.dragonKick <= 2.5 and (buffPresent.opoOpoForm is True or buffPresent.perfectBalance is True))
-monk.dragonKick if (debuffTimeLeft.dragonKick <= 2.5 and (buffPresent.opoOpoForm is True or buffPresent.perfectBalance is True))
-pugilist.touchOfDeath if (debuffTimeLeft.touchOfDeath <= 1.5 and buffPresent.twinSnakes is True and buffAtMaxStacks.greasedLightning is True)
-pugilist.touchOfDeath if (debuffTimeLeft.touchOfDeath <= 1.5 and buffPresent.twinSnakes is True)
-pugilist.touchOfDeath if (debuffTimeLeft.touchOfDeath <= 1.5 and buffPresent.twinSnakes is True and buffPresent.dragonKick is True)
-marauder.fracture if (debuffTimeLeft.fracture <= 1.5 and buffPresent.twinSnakes is True and buffAtMaxStacks.greasedLightning is True and state.tp >= 200)
-marauder.fracture if (debuffTimeLeft.fracture <= 1.5 and buffPresent.twinSnakes is True and state.tp >= 200)
-marauder.fracture if (debuffTimeLeft.fracture <= 1.5 and debuffPresent.dragonKick is True and buffPresent.twinSnakes is True and buffAtMaxStacks.greasedLightning is True and state.tp >= 200)
+marauder.fracture if (debuffTimeLeft.fracture <= 1.5 and buffPresent.twinSnakes is True and state.tp >= 200.0)
 pugilist.bootshine if (buffPresent.perfectBalance is True or buffPresent.opoOpoForm is True)
 pugilist.trueStrike
 pugilist.snapPunch
