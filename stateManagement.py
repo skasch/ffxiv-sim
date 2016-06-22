@@ -25,7 +25,8 @@ def nextAction(state) :
 
 def applyTpChange(state, tpDiff) :
     newState = copy.deepcopy(state)
-    newState['player']['tp'] = max(min(newState['player']['tp'] + tpDiff, 1000), 0)
+    if 'tp' in newState['player'] :
+        newState['player']['tp'] = max(min(newState['player']['tp'] + tpDiff, 1000), 0)
     return newState
 
 def tpTick(state) :

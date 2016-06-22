@@ -116,7 +116,7 @@ def computeDamage(state, src, value = None) :
         dtype = state['player']['baseStats']['weaponType']
     elif src == 'skill' :
         pot = value['potency']
-        dtype = value['type']
+        dtype = state['player']['baseStats']['weaponType']
     elif src == 'DoT':
         pot = value['potency']
         dtype = 'DoT'

@@ -54,26 +54,26 @@ while unoptimized :
     unoptimized = False
     # Try to switch two elements from the priority list and calcuate the new DPS
     for i in range(len(priorityList) - 1):
-#        for j in range(i + 1, len(priorityList)):
-        j = i+1
-        newPriorityList = copy.deepcopy(priorityList)
-        newPriorityList[i], newPriorityList[j] = newPriorityList[j], newPriorityList[i]
-        (_, _, newDPS, _, _, _, _) = simulate(
-            (newPriorityList, character),
-            duration,
-            variation,
-            nbSim,
-            runStatWeights = runStatWeights,
-            randomize = randomize,
-            dmgLimit = dmgLimit,
-            verbose = False
-        )
-        print newDPS
-        # if new DPS is higher than old DPS update reference DPS
-        if newDPS > refDPS * 1.0001:
-            unoptimized = True
-            bestPerm = (i, j)
-            refDPS = newDPS
+        for j in range(i + 1, len(priorityList)):
+#        j = i+1
+            newPriorityList = copy.deepcopy(priorityList)
+            newPriorityList[i], newPriorityList[j] = newPriorityList[j], newPriorityList[i]
+            (_, _, newDPS, _, _, _, _) = simulate(
+                (newPriorityList, character),
+                duration,
+                variation,
+                nbSim,
+                runStatWeights = runStatWeights,
+                randomize = randomize,
+                dmgLimit = dmgLimit,
+                verbose = False
+            )
+            print newDPS
+            # if new DPS is higher than old DPS update reference DPS
+            if newDPS > refDPS * 1.0001:
+                unoptimized = True
+                bestPerm = (i, j)
+                refDPS = newDPS
         #
     if unoptimized :
         # if reference DPS has changed, update priority list accordingly

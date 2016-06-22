@@ -1,8 +1,8 @@
 set class lancer
-set strength 1308
-set criticalHitRate 1099
-set determination 567
-set skillSpeed 621
+set strength 1317
+set criticalHitRate 735
+set determination 796
+set skillSpeed 462
 set weaponDamage 81
 set weaponDelay 2.88
 set weaponType piercing
@@ -20,6 +20,7 @@ lancer.lifeSurge if (state.lastGCD is vorpalThrust or buffPresent.sharperFangAnd
 dragoon.jump if (buffPresent.powerSurge is True or cooldownTimeLeft.powerSurge >= 20)
 dragoon.dragonfireDive if buffPresent.heavyThrust is True
 dragoon.spineshatterDive if buffPresent.heavyThrust is True
+lancer.invigorate if state.tp <= 550
 
 # globals
 dragoon.fangAndClaw

@@ -182,6 +182,9 @@ def getConditionValue(state, condition) :
     """
     if condition['type'] == 'buffPresent':
         return condition['name'] in [ bf[0]['name'] for bf in state['player']['buff'] ]
+    elif condition['type'] == 'buffStacks':
+        bufArray = [ bf[1] for bf in state['player']['buff'] if bf[0]['name'] == condition['name'] ]
+        return bufArray[0] if len(bufArray) >= 1 else 0
     elif condition['type'] == 'buffAtMaxStacks':
         return condition['name'] in [ bf[0]['name'] for bf in state['player']['buff'] if 'maxStacks' in b(state['player']['class'])[bf[0]['name']] and bf[1] == b(state['player']['class'])[bf[0]['name']]['maxStacks'] ]
     elif condition['type'] == 'buffTimeLeft':

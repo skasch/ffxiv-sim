@@ -57,8 +57,9 @@ def initializeState(
         'buff': [],
         'baseStats': {},
         'cooldown': [],
-        'tp': 1000,
     }
+    if 'useTp' in character and character['useTp'] :
+        state['player']['tp'] = 1000
     # Enemy state
     # debuff: list of debuffs
     # resistance: base resistances of the enemy
@@ -322,7 +323,6 @@ def simulate(
     duration,
     variation,
     nbSim,
-    useTp = False,
     runStatWeights = False,
     plotStats = [],
     randomize = True,
@@ -354,7 +354,7 @@ def simulate(
     else :
         (priorityList, character) = model
     # Format priority list
-    plist = formatPriorityList(priorityList, character['class'], useTp)
+    plist = formatPriorityList(priorityList, character['class'], character['useTp'])
     # Initial state initializer with constant stats
     initializer = getInitializer(character)
     
@@ -434,7 +434,7 @@ def simulate(
             pl.show()
             # Shows the first 50 actions of the character for the example
             print 'First 50 actions:'
-            for i in range(50):
+            for i in range(min(len(gCycleSkills), 50)):
                 print gCycleSkills[i]
             print ''
             # Pretty prints the table of skills averaged across simulations
@@ -471,7 +471,7 @@ def simulate(
                     plotStatVariation(initialState, plist, stat)
             # Shows the first 50 actions of the character
             print 'First 50 actions:'
-            for i in range(50):
+            for i in range(min(len(gCycleSkills), 50)):
                 print gCycleSkills[i]
             print ''
             # Pretty prints the table of skills
