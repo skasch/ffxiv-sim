@@ -59,6 +59,13 @@ def gcdTick(ss, buf) :
     bufF = reduceBuffs(buf)
     return (2.50245 - ((ss - 354.) * 0.0003776)) * bufF
 
+def getWeaponDelay(delay, buf) :
+    """Get the GCD tick duration for given stats and buffs
+    See Dervy's damage formula for source
+    """
+    bufF = reduceBuffs(buf)
+    return delay * bufF
+
 def dotTick(ss) :
     """Get the skill speed based damage bonus for DoTs
     See Dervy's damage formula for source

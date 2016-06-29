@@ -12,7 +12,7 @@ from simulator import simulate
 model = 'monk'
 duration = 5
 variation = 0.2
-nbSim = 20
+nbSim = 50
 runStatWeights = False
 plotStats = []
 randomize = False

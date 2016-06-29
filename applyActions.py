@@ -10,7 +10,7 @@ from stateManagement import \
     nextAction, applyDamage, applyTpChange
 from dpsCalculation import \
     baseDamage, basePotency, critChance, critBonus, gcdTick, dotTick, \
-    strBonus, buffedPotency
+    strBonus, buffedPotency, getWeaponDelay
 from priorityManagement import actionToGcdType
 from buffs import b
 from debuffs import d
@@ -190,7 +190,8 @@ def applyAutoAttack(state) :
     # Reduce HP of target
     newState = applyDamage(newState, effDmg)
     # Add next auto-attck
-    autoAttackDelay = newState['player']['baseStats']['weaponDelay']
+    speedBuf = getBuff(newState, 'speed')
+    autoAttackDelay = getWeaponDelay(newState['player']['baseStats']['weaponDelay'], speedBuf)
     newState = addAction(newState, autoAttackDelay, { 'type': 'autoAttack' })
     newState = nextAction(newState)
     return (newState, result)

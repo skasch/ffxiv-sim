@@ -1,12 +1,12 @@
 set class pugilist
-#set strength 1143
-#set criticalHitRate 734
-#set determination 512
-#set skillSpeed 590
-#set weaponDamage 76
+set strength 1150
+set criticalHitRate 734
+set determination 471
+set skillSpeed 636
+set weaponDamage 76
 set strength 1308
-set criticalHitRate 934
-set determination 619
+set criticalHitRate 1016
+set determination 541
 set skillSpeed 741
 set weaponDamage 81
 set weaponDelay 2.56
@@ -20,18 +20,18 @@ prepull monk.meditation if buffAtMaxStacks.chakra is False
 prepull monk.fistOfFire if buffPresent.fistOfFire is False
 
 # Instants
-pugilist.internalRelease if (buffStacks.greasedLightning >= 2.0 and cooldownTimeLeft.elixirField <= 5.0)
 lancer.bloodForBlood if buffStacks.greasedLightning >= 2.0
+pugilist.internalRelease if (buffStacks.greasedLightning >= 2.0 and cooldownTimeLeft.elixirField <= 5)
 pugilist.perfectBalance if cooldownPresent.internalRelease is False
 item.potionOfStrengthHQ if buffStacks.greasedLightning >= 3.0
 pugilist.steelPeak if buffAtMaxStacks.greasedLightning is True
-monk.elixirField if (buffPresent.internalRelease is True or cooldownTimeLeft.internalRelease >= 10.0)
-pugilist.howlingFist if buffAtMaxStacks.greasedLightning is True
-monk.forbiddenChakra if ((state.tp >= 650.0 and buffPresent.internalRelease is True) or cooldownTimeLeft.purification >= 10.0)
+pugilist.howlingFist if buffPresent.internalRelease is True
+monk.elixirField if (buffPresent.internalRelease is True or cooldownTimeLeft.internalRelease >= 20)
+monk.purification if state.tp <= 650.0
+monk.forbiddenChakra if (buffPresent.internalRelease is True or cooldownPresent.purification is True)
 monk.shoulderTackle if buffAtMaxStacks.greasedLightning is True
 marauder.mercyStroke if buffPresent.internalRelease is True
 lancer.invigorate if state.tp <= 550.0
-monk.purification if state.tp <= 650.0
 
 # Global
 pugilist.touchOfDeath if (debuffTimeLeft.touchOfDeath <= 1.5 and buffPresent.twinSnakes is True and buffAtMaxStacks.greasedLightning is True)
